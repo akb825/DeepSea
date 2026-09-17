@@ -107,10 +107,11 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 	resourceManager->standardPixelFormats[dsGfxFormat_B8G8R8A8][srgbIndex] =
 		MTLPixelFormatBGRA8Unorm_sRGB;
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	resourceManager->standardPixelFormats[dsGfxFormat_A2R10G10B10][unormIndex] =
-		MTLPixelFormatBGR10A2Unorm;
-#endif
+	if (@available(iOS 11.0, macOS 10.13, *))
+	{
+		resourceManager->standardPixelFormats[dsGfxFormat_A2R10G10B10][unormIndex] =
+			MTLPixelFormatBGR10A2Unorm;
+	}
 	resourceManager->standardPixelFormats[dsGfxFormat_A2B10G10R10][unormIndex] =
 		MTLPixelFormatRGB10A2Unorm;
 	resourceManager->standardPixelFormats[dsGfxFormat_A2B10G10R10][uintIndex] =
@@ -158,9 +159,12 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 		MTLPixelFormatRG11B10Float;
 	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_E5B9G9R9_UFloat)] =
 		MTLPixelFormatRGB9E5Float;
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D16)] =
-		MTLPixelFormatDepth16Unorm;
+#if DS_MAC
+	if (@available(macOS 10.12, *))
+	{
+		resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D16)] =
+			MTLPixelFormatDepth16Unorm;
+	}
 #endif
 	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D32_Float)] =
 		MTLPixelFormatDepth32Float;
@@ -174,193 +178,200 @@ static void initializePixelFormats(dsMTLResourceManager* resourceManager, id<MTL
 	}
 #endif
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D32S8_Float)] =
-		MTLPixelFormatDepth32Float_Stencil8;
-#endif
-
-#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
-	if (resourceManager->appleGpu)
+	if (@available(iOS 9.0, *))
 	{
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_ETC1)][unormIndex] = MTLPixelFormatETC2_RGB8;
+		resourceManager->specialPixelFormats[dsGfxFormat_specialIndex(dsGfxFormat_D32S8_Float)] =
+			MTLPixelFormatDepth32Float_Stencil8;
+	}
 
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8)][unormIndex] =
-				MTLPixelFormatETC2_RGB8;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8)][srgbIndex] =
-				MTLPixelFormatETC2_RGB8_sRGB;
-
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8A1)][unormIndex] =
-				MTLPixelFormatETC2_RGB8A1;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8)][srgbIndex] =
-				MTLPixelFormatETC2_RGB8A1_sRGB;
-
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8A8)][unormIndex] =
-				MTLPixelFormatEAC_RGBA8;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8A8)][srgbIndex] =
-				MTLPixelFormatEAC_RGBA8;
-
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11)][unormIndex] =
-				MTLPixelFormatEAC_R11Unorm;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11)][snormIndex] =
-				MTLPixelFormatEAC_R11Snorm;
-
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11G11)][unormIndex] =
-				MTLPixelFormatEAC_RG11Unorm;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11G11)][snormIndex] =
-				MTLPixelFormatEAC_RG11Snorm;
-
-		// PVRTC is deprecated in newer versions of macOS and iOS, but may still be useful for older
-		// devices.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][unormIndex] =
-				MTLPixelFormatPVRTC_RGB_2BPP;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][srgbIndex] =
-				MTLPixelFormatPVRTC_RGB_2BPP_sRGB;
-
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][unormIndex] =
-				MTLPixelFormatPVRTC_RGBA_2BPP;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][srgbIndex] =
-				MTLPixelFormatPVRTC_RGBA_2BPP_sRGB;
-
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][unormIndex] =
-				MTLPixelFormatPVRTC_RGB_4BPP;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][srgbIndex] =
-				MTLPixelFormatPVRTC_RGB_4BPP_sRGB;
-
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][unormIndex] =
-				MTLPixelFormatPVRTC_RGBA_4BPP;
-		resourceManager->compressedPixelFormats
-			[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][srgbIndex] =
-				MTLPixelFormatPVRTC_RGBA_4BPP_sRGB;
-#pragma GCC diagnostic pop
-
-		bool hasASTC = false;
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-		hasASTC = [device supportsFamily: MTLGPUFamilyApple2];
-#else
-		hasASTC = [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1];
-#endif
-		if (hasASTC)
+	if (@available(macOS 11.0, *))
+	{
+		if (resourceManager->appleGpu)
 		{
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_4x4)][unormIndex] =
-					MTLPixelFormatASTC_4x4_LDR;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_4x4)][srgbIndex] =
-					MTLPixelFormatASTC_4x4_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_ETC1)][unormIndex] =
+					MTLPixelFormatETC2_RGB8;
 
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_5x4)][unormIndex] =
-					MTLPixelFormatASTC_5x4_LDR;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8)][unormIndex] =
+					MTLPixelFormatETC2_RGB8;
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_5x4)][srgbIndex] =
-					MTLPixelFormatASTC_5x4_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8)][srgbIndex] =
+					MTLPixelFormatETC2_RGB8_sRGB;
 
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_5x5)][unormIndex] =
-					MTLPixelFormatASTC_5x5_LDR;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8A1)][unormIndex] =
+					MTLPixelFormatETC2_RGB8A1;
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_5x5)][srgbIndex] =
-					MTLPixelFormatASTC_5x5_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8)][srgbIndex] =
+					MTLPixelFormatETC2_RGB8A1_sRGB;
 
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_6x5)][unormIndex] =
-					MTLPixelFormatASTC_6x5_LDR;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8A8)][unormIndex] =
+					MTLPixelFormatEAC_RGBA8;
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_6x5)][srgbIndex] =
-					MTLPixelFormatASTC_6x5_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_ETC2_R8G8B8A8)][srgbIndex] =
+					MTLPixelFormatEAC_RGBA8;
 
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_6x6)][unormIndex] =
-					MTLPixelFormatASTC_6x6_LDR;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11)][unormIndex] =
+					MTLPixelFormatEAC_R11Unorm;
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_6x6)][srgbIndex] =
-					MTLPixelFormatASTC_6x6_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11)][snormIndex] =
+					MTLPixelFormatEAC_R11Snorm;
 
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x5)][unormIndex] =
-					MTLPixelFormatASTC_8x5_LDR;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11G11)][unormIndex] =
+					MTLPixelFormatEAC_RG11Unorm;
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x5)][srgbIndex] =
-					MTLPixelFormatASTC_8x5_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_EAC_R11G11)][snormIndex] =
+					MTLPixelFormatEAC_RG11Snorm;
+
+			// PVRTC is deprecated in newer versions of macOS and iOS, but may still be useful for
+			// older devices.
+			DS_PUSH_DEPRECATION_WARNINGS
+			resourceManager->compressedPixelFormats
+				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][unormIndex] =
+					MTLPixelFormatPVRTC_RGB_2BPP;
+			resourceManager->compressedPixelFormats
+				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_2BPP)][srgbIndex] =
+					MTLPixelFormatPVRTC_RGB_2BPP_sRGB;
 
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x6)][unormIndex] =
-					MTLPixelFormatASTC_8x6_LDR;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][unormIndex] =
+					MTLPixelFormatPVRTC_RGBA_2BPP;
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x6)][srgbIndex] =
-					MTLPixelFormatASTC_8x6_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_2BPP)][srgbIndex] =
+					MTLPixelFormatPVRTC_RGBA_2BPP_sRGB;
 
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x8)][unormIndex] =
-					MTLPixelFormatASTC_8x8_LDR;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][unormIndex] =
+					MTLPixelFormatPVRTC_RGB_4BPP;
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x8)][srgbIndex] =
-					MTLPixelFormatASTC_8x8_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGB_4BPP)][srgbIndex] =
+					MTLPixelFormatPVRTC_RGB_4BPP_sRGB;
 
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x5)][unormIndex] =
-					MTLPixelFormatASTC_10x5_LDR;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][unormIndex] =
+					MTLPixelFormatPVRTC_RGBA_4BPP;
 			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x5)][srgbIndex] =
-					MTLPixelFormatASTC_10x5_sRGB;
+				[dsGfxFormat_compressedIndex(dsGfxFormat_PVRTC1_RGBA_4BPP)][srgbIndex] =
+					MTLPixelFormatPVRTC_RGBA_4BPP_sRGB;
+			DS_POP_DEPRECATION_WARNINGS
 
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x6)][unormIndex] =
-					MTLPixelFormatASTC_10x6_LDR;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x6)][srgbIndex] =
-					MTLPixelFormatASTC_10x6_sRGB;
+			bool hasASTC = false;
+			if (@available(iOS 13.0, *))
+				hasASTC = [device supportsFamily: MTLGPUFamilyApple2];
+#if DS_IOS
+			else
+			{
+				DS_PUSH_DEPRECATION_WARNINGS
+				hasASTC = [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1];
+				DS_POP_DEPRECATION_WARNINGS
+			}
+#endif
+			if (hasASTC)
+			{
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_4x4)][unormIndex] =
+						MTLPixelFormatASTC_4x4_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_4x4)][srgbIndex] =
+						MTLPixelFormatASTC_4x4_sRGB;
 
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x8)][unormIndex] =
-					MTLPixelFormatASTC_10x8_LDR;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x8)][srgbIndex] =
-					MTLPixelFormatASTC_10x8_sRGB;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_5x4)][unormIndex] =
+						MTLPixelFormatASTC_5x4_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_5x4)][srgbIndex] =
+						MTLPixelFormatASTC_5x4_sRGB;
 
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x10)][unormIndex] =
-					MTLPixelFormatASTC_10x10_LDR;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x10)][srgbIndex] =
-					MTLPixelFormatASTC_10x10_sRGB;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_5x5)][unormIndex] =
+						MTLPixelFormatASTC_5x5_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_5x5)][srgbIndex] =
+						MTLPixelFormatASTC_5x5_sRGB;
 
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x10)][unormIndex] =
-					MTLPixelFormatASTC_12x10_LDR;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x10)][srgbIndex] =
-					MTLPixelFormatASTC_12x10_sRGB;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_6x5)][unormIndex] =
+						MTLPixelFormatASTC_6x5_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_6x5)][srgbIndex] =
+						MTLPixelFormatASTC_6x5_sRGB;
 
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x12)][unormIndex] =
-					MTLPixelFormatASTC_12x12_LDR;
-			resourceManager->compressedPixelFormats
-				[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x12)][srgbIndex] =
-					MTLPixelFormatASTC_12x12_sRGB;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_6x6)][unormIndex] =
+						MTLPixelFormatASTC_6x6_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_6x6)][srgbIndex] =
+						MTLPixelFormatASTC_6x6_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x5)][unormIndex] =
+						MTLPixelFormatASTC_8x5_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x5)][srgbIndex] =
+						MTLPixelFormatASTC_8x5_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x6)][unormIndex] =
+						MTLPixelFormatASTC_8x6_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x6)][srgbIndex] =
+						MTLPixelFormatASTC_8x6_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x8)][unormIndex] =
+						MTLPixelFormatASTC_8x8_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_8x8)][srgbIndex] =
+						MTLPixelFormatASTC_8x8_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x5)][unormIndex] =
+						MTLPixelFormatASTC_10x5_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x5)][srgbIndex] =
+						MTLPixelFormatASTC_10x5_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x6)][unormIndex] =
+						MTLPixelFormatASTC_10x6_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x6)][srgbIndex] =
+						MTLPixelFormatASTC_10x6_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x8)][unormIndex] =
+						MTLPixelFormatASTC_10x8_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x8)][srgbIndex] =
+						MTLPixelFormatASTC_10x8_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x10)][unormIndex] =
+						MTLPixelFormatASTC_10x10_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_10x10)][srgbIndex] =
+						MTLPixelFormatASTC_10x10_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x10)][unormIndex] =
+						MTLPixelFormatASTC_12x10_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x10)][srgbIndex] =
+						MTLPixelFormatASTC_12x10_sRGB;
+
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x12)][unormIndex] =
+						MTLPixelFormatASTC_12x12_LDR;
+				resourceManager->compressedPixelFormats
+					[dsGfxFormat_compressedIndex(dsGfxFormat_ASTC_12x12)][srgbIndex] =
+						MTLPixelFormatASTC_12x12_sRGB;
+			}
 		}
 	}
-#endif
 
 #if DS_MAC
 	uint32_t ufloatIndex = dsGfxFormat_decoratorIndex(dsGfxFormat_UFloat);
@@ -419,14 +430,15 @@ static void initializeVertexFormats(dsMTLResourceManager* resourceManager)
 	uint32_t sscaledIndex = dsGfxFormat_decoratorIndex(dsGfxFormat_SScaled);
 	uint32_t floatIndex = dsGfxFormat_decoratorIndex(dsGfxFormat_Float);
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	resourceManager->vertexFormats[dsGfxFormat_X8][unormIndex] = MTLVertexFormatUCharNormalized;
-	resourceManager->vertexFormats[dsGfxFormat_X8][snormIndex] = MTLVertexFormatCharNormalized;
-	resourceManager->vertexFormats[dsGfxFormat_X8][uintIndex] = MTLVertexFormatUChar;
-	resourceManager->vertexFormats[dsGfxFormat_X8][sintIndex] = MTLVertexFormatChar;
-	resourceManager->vertexFormats[dsGfxFormat_X8][uscaledIndex] = MTLVertexFormatUChar;
-	resourceManager->vertexFormats[dsGfxFormat_X8][sscaledIndex] = MTLVertexFormatChar;
-#endif
+	if (@available(iOS 11.0, macOS 10.13, *))
+	{
+		resourceManager->vertexFormats[dsGfxFormat_X8][unormIndex] = MTLVertexFormatUCharNormalized;
+		resourceManager->vertexFormats[dsGfxFormat_X8][snormIndex] = MTLVertexFormatCharNormalized;
+		resourceManager->vertexFormats[dsGfxFormat_X8][uintIndex] = MTLVertexFormatUChar;
+		resourceManager->vertexFormats[dsGfxFormat_X8][sintIndex] = MTLVertexFormatChar;
+		resourceManager->vertexFormats[dsGfxFormat_X8][uscaledIndex] = MTLVertexFormatUChar;
+		resourceManager->vertexFormats[dsGfxFormat_X8][sscaledIndex] = MTLVertexFormatChar;
+	}
 
 	resourceManager->vertexFormats[dsGfxFormat_X8Y8][unormIndex] = MTLVertexFormatUChar2Normalized;
 	resourceManager->vertexFormats[dsGfxFormat_X8Y8][snormIndex] = MTLVertexFormatChar2Normalized;
@@ -452,25 +464,29 @@ static void initializeVertexFormats(dsMTLResourceManager* resourceManager)
 	resourceManager->vertexFormats[dsGfxFormat_X8Y8Z8W8][uscaledIndex] = MTLVertexFormatUChar4;
 	resourceManager->vertexFormats[dsGfxFormat_X8Y8Z8W8][sscaledIndex] = MTLVertexFormatChar4;
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	resourceManager->vertexFormats[dsGfxFormat_B8G8R8A8][unormIndex] =
-		MTLVertexFormatUChar4Normalized_BGRA;
-#endif
+	if (@available(iOS 11.0, macOS 10.13, *))
+	{
+		resourceManager->vertexFormats[dsGfxFormat_B8G8R8A8][unormIndex] =
+			MTLVertexFormatUChar4Normalized_BGRA;
+	}
 
 	resourceManager->vertexFormats[dsGfxFormat_W2Z10Y10X10][unormIndex] =
 		MTLVertexFormatUInt1010102Normalized;
 	resourceManager->vertexFormats[dsGfxFormat_W2Z10Y10X10][snormIndex] =
 		MTLVertexFormatInt1010102Normalized;
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	resourceManager->vertexFormats[dsGfxFormat_X16][unormIndex] = MTLVertexFormatUShortNormalized;
-	resourceManager->vertexFormats[dsGfxFormat_X16][snormIndex] = MTLVertexFormatShortNormalized;
-	resourceManager->vertexFormats[dsGfxFormat_X16][uintIndex] = MTLVertexFormatUShort;
-	resourceManager->vertexFormats[dsGfxFormat_X16][sintIndex] = MTLVertexFormatShort;
-	resourceManager->vertexFormats[dsGfxFormat_X16][uscaledIndex] = MTLVertexFormatUShort;
-	resourceManager->vertexFormats[dsGfxFormat_X16][sscaledIndex] = MTLVertexFormatShort;
-	resourceManager->vertexFormats[dsGfxFormat_X16][floatIndex] = MTLVertexFormatHalf;
-#endif
+	if (@available(iOS 11.0, macOS 10.13, *))
+	{
+		resourceManager->vertexFormats[dsGfxFormat_X16][unormIndex] =
+			MTLVertexFormatUShortNormalized;
+		resourceManager->vertexFormats[dsGfxFormat_X16][snormIndex] =
+			MTLVertexFormatShortNormalized;
+		resourceManager->vertexFormats[dsGfxFormat_X16][uintIndex] = MTLVertexFormatUShort;
+		resourceManager->vertexFormats[dsGfxFormat_X16][sintIndex] = MTLVertexFormatShort;
+		resourceManager->vertexFormats[dsGfxFormat_X16][uscaledIndex] = MTLVertexFormatUShort;
+		resourceManager->vertexFormats[dsGfxFormat_X16][sscaledIndex] = MTLVertexFormatShort;
+		resourceManager->vertexFormats[dsGfxFormat_X16][floatIndex] = MTLVertexFormatHalf;
+	}
 
 	resourceManager->vertexFormats[dsGfxFormat_X16Y16][unormIndex] =
 		MTLVertexFormatUShort2Normalized;
@@ -527,52 +543,57 @@ static void initializeVertexFormats(dsMTLResourceManager* resourceManager)
 	resourceManager->vertexFormats[dsGfxFormat_X32Y32Z32W32][floatIndex] = MTLVertexFormatFloat4;
 }
 
-static uint32_t getMinTextureBufferAlignment(dsMTLResourceManager* resourceManager,
-	id<MTLDevice> device)
+static uint32_t getMinTextureBufferAlignment(
+	dsMTLResourceManager* resourceManager, id<MTLDevice> device)
 {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED < 110000 && __MAC_OS_X_VERSION_MIN_REQUIRED < 101300
-	DS_UNUSED(resourceManager);
-	DS_UNUSED(device);
-#if DS_IOS
-#if __IPHONE_OS_VERSION_MIN_REQUIRED == 100000
-	if ([device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v2])
-		return 16;
-#endif
-	return 64;
-#else
-	return 0;
-#endif
-#else
-	uint32_t alignment = 0;
-	for (uint32_t i = 0; i < (uint32_t)dsGfxFormat_StandardCount; ++i)
+	if (@available(iOS 11.0, macOS 10.13, *))
 	{
-		for (uint32_t j = 0; j < (uint32_t)dsGfxFormat_DecoratorCount; ++j)
+		uint32_t alignment = 0;
+		for (uint32_t i = 0; i < (uint32_t)dsGfxFormat_StandardCount; ++i)
 		{
-			MTLPixelFormat format = resourceManager->standardPixelFormats[i][j];
+			for (uint32_t j = 0; j < (uint32_t)dsGfxFormat_DecoratorCount; ++j)
+			{
+				MTLPixelFormat format = resourceManager->standardPixelFormats[i][j];
+				if (format == MTLPixelFormatInvalid)
+					continue;
+
+				uint32_t thisAlignment =
+					(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format];
+				alignment = dsMax(alignment, thisAlignment);
+			}
+		}
+
+		for (uint32_t i = 0; i < (uint32_t)dsGfxFormat_SpecialCount; ++i)
+		{
+			if (dsGfxFormat_isDepthStencil(dsGfxFormat_specialEnum(i)))
+				continue;
+
+			MTLPixelFormat format = resourceManager->specialPixelFormats[i];
 			if (format == MTLPixelFormatInvalid)
 				continue;
 
-			alignment = dsMax(alignment,
-				(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format]);
+			uint32_t thisAlignment =
+				(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format];
+			alignment = dsMax(alignment, thisAlignment);
 		}
+
+		return alignment;
 	}
-
-
-	for (uint32_t i = 0; i < (uint32_t)dsGfxFormat_SpecialCount; ++i)
+	else
 	{
-		if (dsGfxFormat_isDepthStencil(dsGfxFormat_specialEnum(i)))
-			continue;
-
-		MTLPixelFormat format = resourceManager->specialPixelFormats[i];
-		if (format == MTLPixelFormatInvalid)
-			continue;
-
-		alignment = dsMax(alignment,
-			(uint32_t)[device minimumLinearTextureAlignmentForPixelFormat: format]);
-	}
-
-	return alignment;
+#if DS_IOS
+		if (@available(iOS 10.0, *))
+		{
+			DS_PUSH_DEPRECATION_WARNINGS
+			if ([device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v2])
+				return 16;
+			DS_POP_DEPRECATION_WARNINGS
+		}
+		return 64;
+#else
+		return 0;
 #endif
+	}
 }
 
 static dsGfxBufferUsage getSupportedBuffers(id<MTLDevice> device)
@@ -583,42 +604,47 @@ static dsGfxBufferUsage getSupportedBuffers(id<MTLDevice> device)
 #if DS_MAC
 	DS_UNUSED(device);
 	usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-	if ([device supportsFamily: MTLGPUFamilyApple3])
-		usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	if ([device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1])
-		usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
+#else
+	if (@available(iOS 13.0, *))
+	{
+		if ([device supportsFamily: MTLGPUFamilyApple3])
+			usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
+	}
+	else if (@available(iOS 9.0, *))
+	{
+		DS_PUSH_DEPRECATION_WARNINGS
+		if ([device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1])
+			usage |= dsGfxBufferUsage_IndirectDraw | dsGfxBufferUsage_IndirectDispatch;
+		DS_POP_DEPRECATION_WARNINGS
+	}
 #endif
-#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	usage |= dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image;
-#endif
+	if (@available(macOS 10.13, *))
+		usage |= dsGfxBufferUsage_Texture | dsGfxBufferUsage_Image;
 	return usage;
 }
 
 static size_t getMaxBufferLength(id<MTLDevice> device)
 {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-	return device.maxBufferLength;
-#else
-	DS_UNUSED(device);
-#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED == 101100
-	return 256*1024*1024;
-#else
+	if (@available(iOS 12.0, macOS 10.14, *))
+		return device.maxBufferLength;
+	else if (@available(macOS 10.11, *))
+		return 256*1024*1024;
 	return 1024*1024*1024;
-#endif
-#endif
 }
 
 static uint32_t getMaxTextureSize(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
-#if __IPHONE_OS_VERSION_MIN_REQUIRED == 80000
+#if DS_IOS
+	if (@available(iOS 13.0, *))
+		return [device supportsFamily: MTLGPUFamilyApple3] ? 16384 : 8192;
+	else if (@available(iOS 9.0, *))
+	{
+		DS_PUSH_DEPRECATION_WARNINGS
+		return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1] ? 16384 : 8192;
+		DS_POP_DEPRECATION_WARNINGS
+	}
 	return 4096;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-	return [device supportsFamily: MTLGPUFamilyApple3] ? 16384 : 8192;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1] ? 16384 : 8192;
 #else
 	return 16384;
 #endif
@@ -628,13 +654,15 @@ static bool hasLayeredRendering(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
 #if DS_IOS
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-	return [device supportsFamily: MTLGPUFamilyApple5];
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily5_v1];
-#else
+	if (@available(iOS 13.0, *))
+		return [device supportsFamily: MTLGPUFamilyApple5];
+	else if (@available(iOS 12.0, *))
+	{
+		DS_PUSH_DEPRECATION_WARNINGS
+		return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily5_v1];
+		DS_POP_DEPRECATION_WARNINGS
+	}
 	return false;
-#endif
 #else
 	return true;
 #endif
@@ -644,20 +672,22 @@ static bool hasCubeArrays(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
 #if DS_IOS
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-	return [device supportsFamily: MTLGPUFamilyApple4];
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
-#else
+	if (@available(iOS 13.0, *))
+		return [device supportsFamily: MTLGPUFamilyApple4];
+	else if (@available(iOS 11.0, *))
+	{
+		DS_PUSH_DEPRECATION_WARNINGS
+		return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
+		DS_POP_DEPRECATION_WARNINGS
+	}
 	return false;
-#endif
 #else
 	return true;
 #endif
 }
 
-static bool isSpecialTextureFormatSupported(const dsMTLResourceManager* mtlResourceManager,
-	dsGfxFormat format, uint32_t specialIndex)
+static bool isSpecialTextureFormatSupported(
+	const dsMTLResourceManager* mtlResourceManager, dsGfxFormat format, uint32_t specialIndex)
 {
 	if (mtlResourceManager->specialPixelFormats[specialIndex] != MTLPixelFormatInvalid)
 		return true;
@@ -681,8 +711,8 @@ static bool isSpecialTextureFormatSupported(const dsMTLResourceManager* mtlResou
 	return false;
 }
 
-bool dsMTLResourceManager_vertexFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsMTLResourceManager_vertexFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
 	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
@@ -691,8 +721,8 @@ bool dsMTLResourceManager_vertexFormatSupported(const dsResourceManager* resourc
 		MTLVertexFormatInvalid;
 }
 
-bool dsMTLResourceManager_textureFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsMTLResourceManager_textureFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
 	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
@@ -718,8 +748,8 @@ bool dsMTLResourceManager_textureFormatSupported(const dsResourceManager* resour
 	return false;
 }
 
-bool dsMTLResourceManager_generateMipmapFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsMTLResourceManager_generateMipmapFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	const dsMTLResourceManager* mtlResourceManager = (const dsMTLResourceManager*)resourceManager;
 	uint32_t standardIndex = dsGfxFormat_standardIndex(format);
@@ -733,8 +763,8 @@ bool dsMTLResourceManager_generateMipmapFormatSupported(const dsResourceManager*
 	return false;
 }
 
-bool dsMTLResourceManager_imageFormatSupported(const dsResourceManager* resourceManager,
-	dsGfxFormat format)
+bool dsMTLResourceManager_imageFormatSupported(
+	const dsResourceManager* resourceManager, dsGfxFormat format)
 {
 	@autoreleasepool
 	{
@@ -758,12 +788,19 @@ bool dsMTLResourceManager_imageFormatSupported(const dsResourceManager* resource
 					return false;
 				case dsGfxFormat_A2R10G10B10:
 				case dsGfxFormat_A2B10G10R10:
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-					if (![device supportsFamily: MTLGPUFamilyApple3])
-						return false;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-					if (![device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1])
-						return false;
+#if DS_IOS
+					if (@available(iOS 13.0, *))
+					{
+						if (![device supportsFamily: MTLGPUFamilyApple3])
+							return false;
+					}
+					else if (@available(iOS 9.0, *))
+					{
+						DS_PUSH_DEPRECATION_WARNINGS
+						if (![device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1])
+							return false;
+						DS_POP_DEPRECATION_WARNINGS
+					}
 #endif
 					break;
 				default:
@@ -779,24 +816,32 @@ bool dsMTLResourceManager_imageFormatSupported(const dsResourceManager* resource
 		{
 #if DS_MAC
 			return true;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-			return [device supportsFamily: MTLGPUFamilyApple3];
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-			return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
 #else
+			if (@available(iOS 13.0, *))
+				return [device supportsFamily: MTLGPUFamilyApple3];
+			else if (@available(iOS 9.0, *))
+			{
+				DS_PUSH_DEPRECATION_WARNINGS
+				return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+				DS_POP_DEPRECATION_WARNINGS
+			}
 			return false;
 #endif
 		}
 
 		if (format == dsGfxFormat_E5B9G9R9_UFloat)
 		{
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-			return [device supportsFamily: MTLGPUFamilyApple3];
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-			return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
-#else
-			return false;
+			if (@available(iOS 13.0, macOS 10.15, *))
+				return [device supportsFamily: MTLGPUFamilyApple3];
+#if DS_IOS
+			if (@available(iOS 9.0, *))
+			{
+				DS_PUSH_DEPRECATION_WARNINGS
+				return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+				DS_POP_DEPRECATION_WARNINGS
+			}
 #endif
+			return false;
 		}
 
 		return false;
@@ -886,12 +931,16 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	baseResourceManager->maxResourceContexts = UINT_MAX;
 	baseResourceManager->minNonCoherentMappingAlignment = 0;
 
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-	resourceManager->appleGpu = true;
-#elif __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
-	resourceManager->appleGpu = [device supportsFamily: MTLGPUFamilyApple1];
+#if DS_IOS
+	if (@available(iOS 10.0, *))
+		resourceManager->appleGpu = true;
+	else
+		resourceManager->appleGpu = false;
 #else
-	resourceManager->appleGpu = false;
+	if (@available(macOS 10.15, *))
+		resourceManager->appleGpu = [device supportsFamily: MTLGPUFamilyApple1];
+	else
+		resourceManager->appleGpu = false;
 #endif
 
 	initializePixelFormats(resourceManager, device);
@@ -915,8 +964,8 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 		return NULL;
 	}
 
-	baseResourceManager->minTextureBufferAlignment = getMinTextureBufferAlignment(resourceManager,
-		device);
+	baseResourceManager->minTextureBufferAlignment = getMinTextureBufferAlignment(
+		resourceManager, device);
 	if (resourceManager->appleGpu)
 	{
 		// Strictly speaking 4-byte alignment is required, but elements like vec4 still need to be
@@ -1008,10 +1057,11 @@ dsResourceManager* dsMTLResourceManager_create(dsAllocator* allocator, dsRendere
 	// Core functionality
 	baseResourceManager->vertexFormatSupportedFunc = &dsMTLResourceManager_vertexFormatSupported;
 	baseResourceManager->textureFormatSupportedFunc = &dsMTLResourceManager_textureFormatSupported;
-#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	baseResourceManager->textureBufferFormatSupportedFunc =
-		&dsMTLResourceManager_textureFormatSupported;
-#endif
+	if (@available(macOS 10.13, *))
+	{
+		baseResourceManager->textureBufferFormatSupportedFunc =
+			&dsMTLResourceManager_textureFormatSupported;
+	}
 	baseResourceManager->imageFormatSupportedFunc = &dsMTLResourceManager_imageFormatSupported;
 	baseResourceManager->renderTargetFormatSupportedFunc =
 		&dsMTLResourceManager_renderTargetFormatSupported;

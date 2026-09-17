@@ -113,12 +113,8 @@ include(cmake/ConvertFlatbuffers.cmake)
 
 if (APPLE AND NOT IOS)
 	if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
-		if (DEEPSEA_ARCH STREQUAL arm64)
-			# Default to 11.0 for arm64 for more Metal features.
-			set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0 CACHE STRING "Minimum macOS deployment version." FORCE)
-		else()
-			set(CMAKE_OSX_DEPLOYMENT_TARGET 10.13 CACHE STRING "Minimum macOS deployment version." FORCE)
-		endif()
+		# Minimum target for latest version of Xcode.
+		set(CMAKE_OSX_DEPLOYMENT_TARGET 12.0 CACHE STRING "Minimum macOS deployment version." FORCE)
 	endif()
 
 	if (DEEPSEA_ARCH STREQUAL multi AND CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS 11.0)

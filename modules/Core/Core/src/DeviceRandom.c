@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Aaron Barany
+ * Copyright 2022-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@
 #elif (__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 25)) || __ANDROID_API__ >= 28
 #define DS_USE_GETRANDOM
 #include <sys/random.h>
-#elif __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300 || __FreeBSD_version >= 1200000 || OpenBSD >= 201411
+#elif __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200 || __FreeBSD_version >= 1200000 || OpenBSD >= 201411
 #define DS_USE_GETENTROPY
 #include <sys/random.h>
 #else

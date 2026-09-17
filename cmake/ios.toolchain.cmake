@@ -73,7 +73,7 @@
 #    CMAKE_OSX_SYSROOT, but can also be manually specified (although this should
 #    not be required).
 #
-# DEPLOYMENT_TARGET: Minimum SDK version to target. Default 2.0 on watchOS and 12.0 on tvOS+iOS
+# DEPLOYMENT_TARGET: Minimum SDK version to target. Default 2.0 on watchOS and 15.0 on tvOS+iOS
 #
 # ENABLE_BITCODE: (1|0) Enables or disables bitcode support. Default 1 (true)
 #
@@ -342,7 +342,7 @@ if(NOT DEFINED DEPLOYMENT_TARGET)
             CACHE STRING "Minimum SDK version to build for." )
   else()
     # Unless specified, SDK version 12.0 is used by default as minimum target version (iOS, tvOS).
-    set(DEPLOYMENT_TARGET "12.0"
+    set(DEPLOYMENT_TARGET "15.0"
             CACHE STRING "Minimum SDK version to build for." )
   endif()
   message(STATUS "Using the default min-version since DEPLOYMENT_TARGET not provided!")

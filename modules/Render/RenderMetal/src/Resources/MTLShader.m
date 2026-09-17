@@ -106,13 +106,10 @@ static MTLSamplerAddressMode getAddressMode(mslAddressMode mode)
 		case mslAddressMode_ClampToEdge:
 			return MTLSamplerAddressModeClampToEdge;
 #if DS_MAC
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 		case mslAddressMode_ClampToBorder:
-			return MTLSamplerAddressModeClampToBorderColor;
-#else
-		case mslAddressMode_ClampToBorder:
+			if (@available(macOS 10.12, *))
+				return MTLSamplerAddressModeClampToBorderColor;
 			return MTLSamplerAddressModeClampToEdge;
-#endif
 		case mslAddressMode_MirrorOnce:
 			return MTLSamplerAddressModeMirrorClampToEdge;
 #else
@@ -126,25 +123,6 @@ static MTLSamplerAddressMode getAddressMode(mslAddressMode mode)
 			return MTLSamplerAddressModeRepeat;
 	}
 }
-
-#if DS_MAC && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-static MTLSamplerBorderColor getBorderColor(mslBorderColor color)
-{
-	switch (color)
-	{
-		case mslBorderColor_OpaqueBlack:
-		case mslBorderColor_OpaqueIntZero:
-			return MTLSamplerBorderColorOpaqueBlack;
-		case mslBorderColor_OpaqueWhite:
-		case mslBorderColor_OpaqueIntOne:
-			return MTLSamplerBorderColorOpaqueWhite;
-		case mslBorderColor_TransparentBlack:
-		case mslBorderColor_TransparentIntZero:
-		default:
-			return MTLSamplerBorderColorTransparentBlack;
-	}
-}
-#endif
 
 static bool createDepthStencilState(dsMTLShader* shader)
 {
@@ -210,8 +188,26 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 	descriptor.sAddressMode = getAddressMode(samplerState->addressModeU);
 	descriptor.tAddressMode = getAddressMode(samplerState->addressModeV);
 	descriptor.rAddressMode = getAddressMode(samplerState->addressModeW);
-#if DS_MAC && __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-	descriptor.borderColor = getBorderColor(samplerState->borderColor);
+#if DS_MAC
+	if (@available(macOS 10.12, *))
+	{
+		switch (samplerState->borderColor)
+		{
+			case mslBorderColor_OpaqueBlack:
+			case mslBorderColor_OpaqueIntZero:
+				descriptor.borderColor = MTLSamplerBorderColorOpaqueBlack;
+				break;
+			case mslBorderColor_OpaqueWhite:
+			case mslBorderColor_OpaqueIntOne:
+				descriptor.borderColor = MTLSamplerBorderColorOpaqueWhite;
+				break;
+			case mslBorderColor_TransparentBlack:
+			case mslBorderColor_TransparentIntZero:
+			default:
+				descriptor.borderColor = MTLSamplerBorderColorTransparentBlack;
+				break;
+		}
+	}
 #endif
 
 	descriptor.minFilter = getFilter(samplerState->minFilter);
@@ -229,10 +225,11 @@ static id<MTLSamplerState> createSampler(dsRenderer* renderer, const mslSamplerS
 			descriptor.maxAnisotropy = (NSUInteger)roundf(samplerState->maxAnisotropy);
 	}
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	descriptor.compareFunction = dsGetMTLCompareFunction(samplerState->compareOp,
-		MTLCompareFunctionLess);
-#endif
+	if (@available(iOS 9.0, *))
+	{
+		descriptor.compareFunction = dsGetMTLCompareFunction(
+			samplerState->compareOp, MTLCompareFunctionLess);
+	}
 
 	id<MTLSamplerState> sampler = [device newSamplerStateWithDescriptor: descriptor];
 	if (!sampler)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -198,10 +198,14 @@ bool dsMTLGfxBuffer_unmap(dsResourceManager* resourceManager, dsGfxBuffer* buffe
 	}
 }
 
-bool dsMTLGfxBuffer_flush(dsResourceManager* resourceManager, dsGfxBuffer* buffer,
-	size_t offset, size_t size)
+bool dsMTLGfxBuffer_flush(
+	dsResourceManager* resourceManager, dsGfxBuffer* buffer, size_t offset, size_t size)
 {
 #if DS_MAC
+	dsMTLResourceManager* mtlResourceManager = (dsMTLResourceManager*)resourceManager;
+	if (mtlResourceManager->appleGpu)
+		return true;
+
 	@autoreleasepool
 	{
 		DS_UNUSED(resourceManager);

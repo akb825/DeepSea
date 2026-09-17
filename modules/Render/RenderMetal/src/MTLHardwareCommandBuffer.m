@@ -187,20 +187,26 @@ static id<MTLDepthStencilState> setDepthStencilState(uint32_t* outFrontStencilRe
 			else
 				frontReference = 0;
 		}
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		uint32_t backReference = renderStates->depthStencilState.backStencil.reference;
-		if (backReference == MSL_UNKNOWN)
+
+		uint32_t backReference;
+		if (@available(iOS 9.0, *))
 		{
-			if (dynamicStates)
-				backReference = dynamicStates->backStencilReference;
-			else
-				backReference = 0;
+			backReference = renderStates->depthStencilState.backStencil.reference;
+			if (backReference == MSL_UNKNOWN)
+			{
+				if (dynamicStates)
+					backReference = dynamicStates->backStencilReference;
+				else
+					backReference = 0;
+			}
+			[encoder setStencilFrontReferenceValue: frontReference
+				backReferenceValue: backReference];
 		}
-		[encoder setStencilFrontReferenceValue: frontReference backReferenceValue: backReference];
-#else
-		[encoder setStencilReferenceValue: frontReference];
-		uint32_t backReference = frontReference;
-#endif
+		else
+		{
+			[encoder setStencilReferenceValue: frontReference];
+			backReference = frontReference;
+		}
 		*outFrontStencilRef = frontReference;
 		*outBackStencilRef = backReference;
 	}
@@ -242,14 +248,15 @@ static void setDynamicDepthState(id<MTLRenderCommandEncoder> encoder,
 	if (dynamicOnly)
 		return;
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-	if (hasDepthClip)
+	if (@available(iOS 11.0, *))
 	{
-		[encoder setDepthClipMode:
-			renderStates->rasterizationState.depthClampEnable == mslBool_True ?
-				MTLDepthClipModeClamp : MTLDepthClipModeClip];
+		if (hasDepthClip)
+		{
+			[encoder setDepthClipMode:
+				renderStates->rasterizationState.depthClampEnable == mslBool_True ?
+					MTLDepthClipModeClamp : MTLDepthClipModeClip];
+		}
 	}
-#endif
 }
 
 static bool needToBindTexture(dsMTLBoundTextureSet* boundTextures, dsAllocator* allocator,
@@ -1285,12 +1292,13 @@ bool dsMTLHardwareCommandBuffer_clearAttachments(dsCommandBuffer* commandBuffer,
 			[encoder setViewport: mtlCommandBuffer->curViewport];
 		if (clearStencil)
 		{
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-			[encoder setStencilFrontReferenceValue: mtlCommandBuffer->curFrontStencilRef
-				backReferenceValue: mtlCommandBuffer->curBackStencilRef];
-#else
-			[encoder setStencilReferenceValue: mtlCommandBuffer->curFrontStencilRef];
-#endif
+			if (@available(iOS 9.0, *))
+			{
+				[encoder setStencilFrontReferenceValue: mtlCommandBuffer->curFrontStencilRef
+					backReferenceValue: mtlCommandBuffer->curBackStencilRef];
+			}
+			else
+				[encoder setStencilReferenceValue: mtlCommandBuffer->curFrontStencilRef];
 		}
 		for (uint32_t i = 0; i < 2; ++i)
 		{
@@ -1319,15 +1327,19 @@ bool dsMTLHardwareCommandBuffer_draw(dsCommandBuffer* commandBuffer,
 		mtlCommandBuffer->boundPipeline = (__bridge CFTypeRef)pipeline;
 	}
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	if (commandBuffer->renderer->hasStartInstance || DS_MAC)
+	bool didDraw = false;
+	if (@available(iOS 9.0, *))
 	{
-		[encoder drawPrimitives: getPrimitiveType(primitiveType) vertexStart: drawRange->firstVertex
-			vertexCount: drawRange->vertexCount instanceCount: drawRange->instanceCount
-			baseInstance: drawRange->firstInstance];
+		if (commandBuffer->renderer->hasStartInstance || DS_MAC)
+		{
+			didDraw = true;
+			[encoder drawPrimitives: getPrimitiveType(primitiveType)
+				vertexStart: drawRange->firstVertex vertexCount: drawRange->vertexCount
+				instanceCount: drawRange->instanceCount baseInstance: drawRange->firstInstance];
+		}
 	}
-	else
-#endif
+
+	if (!didDraw)
 	{
 		[encoder drawPrimitives: getPrimitiveType(primitiveType) vertexStart: drawRange->firstVertex
 			vertexCount: drawRange->vertexCount instanceCount: drawRange->instanceCount];
@@ -1351,18 +1363,22 @@ bool dsMTLHardwareCommandBuffer_drawIndexed(dsCommandBuffer* commandBuffer,
 		mtlCommandBuffer->boundPipeline = (__bridge CFTypeRef)pipeline;
 	}
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	if (commandBuffer->renderer->hasStartInstance || DS_MAC)
+	bool didDraw = false;
+	if (@available(iOS 9.0, *))
 	{
-		[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
-			indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
-			indexBuffer: indexBuffer
-			indexBufferOffset: indexOffset + drawRange->firstIndex*indexSize
-			instanceCount: drawRange->instanceCount baseVertex: drawRange->vertexOffset
-			baseInstance: drawRange->firstInstance];
+		if (commandBuffer->renderer->hasStartInstance || DS_MAC)
+		{
+			didDraw = true;
+			[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
+				indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
+				indexBuffer: indexBuffer
+				indexBufferOffset: indexOffset + drawRange->firstIndex*indexSize
+				instanceCount: drawRange->instanceCount baseVertex: drawRange->vertexOffset
+				baseInstance: drawRange->firstInstance];
+		}
 	}
-	else
-#endif
+
+	if (!didDraw)
 	{
 		[encoder drawIndexedPrimitives: getPrimitiveType(primitiveType)
 			indexCount: drawRange->indexCount indexType: getIndexType(indexSize)
@@ -1377,7 +1393,9 @@ bool dsMTLHardwareCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 	id<MTLRenderPipelineState> pipeline, id<MTLBuffer> indirectBuffer, size_t offset,
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if (!@available(iOS 9.0, *))
+		return false;
+
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->renderCommandEncoder)
 		return false;
@@ -1396,16 +1414,6 @@ bool dsMTLHardwareCommandBuffer_drawIndirect(dsCommandBuffer* commandBuffer,
 			indirectBufferOffset: offset + i*stride];
 	}
 	return true;
-#else
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(pipeline);
-	DS_UNUSED(indirectBuffer);
-	DS_UNUSED(offset);
-	DS_UNUSED(count);
-	DS_UNUSED(stride);
-	DS_UNUSED(primitiveType);
-	return false;
-#endif
 }
 
 bool dsMTLHardwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuffer,
@@ -1413,7 +1421,9 @@ bool dsMTLHardwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuff
 	uint32_t indexSize, id<MTLBuffer> indirectBuffer, size_t indirectOffset,
 	uint32_t count, uint32_t stride, dsPrimitiveType primitiveType)
 {
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if (!@available(iOS 9.0, *))
+		return false;
+
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->renderCommandEncoder)
 		return false;
@@ -1434,19 +1444,6 @@ bool dsMTLHardwareCommandBuffer_drawIndexedIndirect(dsCommandBuffer* commandBuff
 			indirectBufferOffset: indirectOffset + i*stride];
 	}
 	return true;
-#else
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(pipeline);
-	DS_UNUSED(indexBuffer);
-	DS_UNUSED(indexOffset);
-	DS_UNUSED(indexSize);
-	DS_UNUSED(indirectBuffer);
-	DS_UNUSED(indirectOffset);
-	DS_UNUSED(count);
-	DS_UNUSED(stride);
-	DS_UNUSED(primitiveType);
-	return false;
-#endif
 }
 
 bool dsMTLHardwareCommandBuffer_dispatchCompute(dsCommandBuffer* commandBuffer,
@@ -1475,7 +1472,9 @@ bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 	id<MTLComputePipelineState> computePipeline, id<MTLBuffer> buffer, size_t offset,
 	uint32_t groupX, uint32_t groupY, uint32_t groupZ)
 {
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if (!@available(iOS 9.0, *))
+		return false;
+
 	dsMTLHardwareCommandBuffer* mtlCommandBuffer = (dsMTLHardwareCommandBuffer*)commandBuffer;
 	if (!mtlCommandBuffer->computeCommandEncoder)
 		return false;
@@ -1492,47 +1491,32 @@ bool dsMTLHardwareCommandBuffer_dispatchComputeIndirect(dsCommandBuffer* command
 	[encoder dispatchThreadgroupsWithIndirectBuffer: buffer indirectBufferOffset: offset
 		threadsPerThreadgroup: MTLSizeMake(groupX, groupY, groupZ)];
 	return true;
-#else
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(computePipeline);
-	DS_UNUSED(buffer);
-	DS_UNUSED(offset);
-	DS_UNUSED(groupX);
-	DS_UNUSED(groupY);
-	DS_UNUSED(groupZ);
-	return false;
-#endif
 }
 
 bool dsMTLHardwareCommandBuffer_pushDebugGroup(dsCommandBuffer* commandBuffer, const char* name)
 {
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+	if (!@available(iOS 11.0, macOS 10.13, *))
+		return true;
+
 	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
 
 	[submitBuffer pushDebugGroup: [NSString stringWithUTF8String: name]];
 	return true;
-#else
-	DS_UNUSED(commandBuffer);
-	DS_UNUSED(name);
-	return true;
-#endif
 }
 
 bool dsMTLHardwareCommandBuffer_popDebugGroup(dsCommandBuffer* commandBuffer)
 {
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
+	if (!@available(iOS 11.0, macOS 10.13, *))
+		return true;
+
 	id<MTLCommandBuffer> submitBuffer = getCommandBuffer(commandBuffer);
 	if (!submitBuffer)
 		return false;
 
 	[submitBuffer popDebugGroup];
 	return true;
-#else
-	DS_UNUSED(commandBuffer);
-	return true;
-#endif
 }
 
 static dsMTLCommandBufferFunctionTable hardwareCommandBufferFunctions =
@@ -1615,8 +1599,8 @@ void dsMTLHardwareCommandBuffer_endEncoding(dsCommandBuffer* commandBuffer)
 	}
 }
 
-id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* commandBuffer,
-	uint64_t submitCount)
+id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(
+	dsCommandBuffer* commandBuffer, uint64_t submitCount)
 {
 	dsMTLHardwareCommandBuffer* mtlHardwareCommandBuffer =
 		(dsMTLHardwareCommandBuffer*)commandBuffer;
@@ -1679,6 +1663,8 @@ id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* comma
 
 #if DS_MAC
 	dsMTLRenderer* renderer = (dsMTLRenderer*)commandBuffer->renderer;
+	dsMTLResourceManager* resourceManager =
+		(dsMTLResourceManager*)commandBuffer->renderer->resourceManager;
 	id<MTLCommandQueue> commandQueue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
 	id<MTLCommandBuffer> submitBuffer = [commandQueue commandBuffer];
 	if (!submitBuffer)
@@ -1696,8 +1682,11 @@ id<MTLCommandBuffer> dsMTLHardwareCommandBuffer_submitted(dsCommandBuffer* comma
 		if (texture)
 		{
 #if DS_MAC
-			id<MTLTexture> realTexture = (__bridge id<MTLTexture>)texture->mtlTexture;
-			[encoder synchronizeResource: realTexture];
+			if (!resourceManager->appleGpu)
+			{
+				id<MTLTexture> realTexture = (__bridge id<MTLTexture>)texture->mtlTexture;
+				[encoder synchronizeResource: realTexture];
+			}
 #endif
 			DS_ATOMIC_STORE64(&texture->lastUsedSubmit, &submitCount);
 			dsLifetime_release(lifetime);

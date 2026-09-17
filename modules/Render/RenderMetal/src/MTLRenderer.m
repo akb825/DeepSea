@@ -72,44 +72,46 @@ static size_t dsMTLRenderer_fullAllocSize(size_t deviceNameLen)
 
 static uint32_t getShaderVersion(void)
 {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 260000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 260000
-	return DS_ENCODE_VERSION(4, 0, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 180000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 150000
-	return DS_ENCODE_VERSION(3, 2, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 170000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 140000
-	return DS_ENCODE_VERSION(3, 1, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 160000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 130000
-	return DS_ENCODE_VERSION(3, 0, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 150000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 120000
-	return DS_ENCODE_VERSION(2, 4, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 140000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
-	return DS_ENCODE_VERSION(2, 3, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500
-	return DS_ENCODE_VERSION(2, 2, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-	return DS_ENCODE_VERSION(2, 1, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	return DS_ENCODE_VERSION(2, 0, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-	return DS_ENCODE_VERSION(1, 2, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101100
-	return DS_ENCODE_VERSION(1, 1, 0);
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 80000
+	if (@available(iOS 27.0, macOS 27.0, *))
+		return DS_ENCODE_VERSION(4, 1, 0);
+	if (@available(iOS 26.0, macOS 26.0, *))
+		return DS_ENCODE_VERSION(4, 0, 0);
+	if (@available(iOS 18.0, macOS 15.0, *))
+		return DS_ENCODE_VERSION(3, 2, 0);
+	if (@available(iOS 17.0, macOS 14.0, *))
+		return DS_ENCODE_VERSION(3, 1, 0);
+	if (@available(iOS 16.0, macOS 13.0, *))
+		return DS_ENCODE_VERSION(3, 0, 0);
+	if (@available(iOS 15.0, macOS 12.0, *))
+		return DS_ENCODE_VERSION(2, 4, 0);
+	if (@available(iOS 14.0, macOS 11.0, *))
+		return DS_ENCODE_VERSION(2, 3, 0);
+	if (@available(iOS 13.0, macOS 10.15, *))
+		return DS_ENCODE_VERSION(2, 2, 0);
+	if (@available(iOS 12.0, macOS 10.14, *))
+		return DS_ENCODE_VERSION(2, 1, 0);
+	if (@available(iOS 11.0, macOS 10.13, *))
+		return DS_ENCODE_VERSION(2, 0, 0);
+	if (@available(iOS 10.0, macOS 10.12, *))
+		return DS_ENCODE_VERSION(1, 2, 0);
+	if (@available(iOS 9.0, *))
+		return DS_ENCODE_VERSION(1, 1, 0);
 	return DS_ENCODE_VERSION(1, 0, 0);
-#else
-#error Metal not supported on this macOS/iOS version!
-#endif
 }
 
 static uint32_t getMaxColorAttachments(id<MTLDevice> device)
 {
 	DS_UNUSED(device);
-#if __IPHONE_OS_VERSION_MIN_REQUIRED == 80000
+#if DS_IOS
+	if (@available(iOS 13.0, *))
+		return [device supportsFamily: MTLGPUFamilyApple2] ? 8 : 4;
+	else if (@available(iOS 9.0, *))
+	{
+		DS_PUSH_DEPRECATION_WARNINGS
+		return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1] ? 8 : 4;
+		DS_POP_DEPRECATION_WARNINGS
+	}
 	return 4;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-	return [device supportsFamily: MTLGPUFamilyApple2] ? 8 : 4;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily2_v1] ? 8 : 4;
 #else
 	return 8;
 #endif
@@ -155,12 +157,19 @@ static uint32_t hasTessellationShaders(id<MTLDevice> device)
 	 */
 
 	DS_UNUSED(device);
-#if DS_IOS && __IPHONE_OS_VERSION_MIN_REQUIRED < 100000
-	return false;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-	//return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v2];
-	return false;
-#elif __MAC_OS_X_VERSION_MIN_REQUIRED == 101000
+#if DS_IOS
+	if (@available(iOS 13.0, *))
+	{
+		//return [device supportsFamily: MTLGPUFamilyApple3];
+		return false;
+	}
+	else if (@available(iOS 10.0, *))
+	{
+		DS_PUSH_DEPRECATION_WARNINGS
+		//return [device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v2];
+		return false;
+		DS_POP_DEPRECATION_WARNINGS
+	}
 	return false;
 #else
 	//return true;
@@ -172,12 +181,10 @@ static uint32_t getSupportedColorSpaces(void)
 {
 	uint32_t colorSpaces = (1 << dsRenderColorSpace_NonLinearSRGB) |
 		(1 << dsRenderColorSpace_NonLinearSRGBConverting);
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-	colorSpaces |= (1 << dsRenderColorSpace_ExtendedLinearSRGB);
-#endif
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 126000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101460
-	colorSpaces |= (1 << dsRenderColorSpace_Rec2100PQ);
-#endif
+	if (@available(iOS 10.0, macOS 10.12, *))
+		colorSpaces |= (1 << dsRenderColorSpace_ExtendedLinearSRGB);
+	if (@available(iOS 12.6, macOS 10.14.6, *))
+		colorSpaces |= (1 << dsRenderColorSpace_Rec2100PQ);
 	return colorSpaces;
 }
 
@@ -247,37 +254,36 @@ static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
 		return false;
 	}
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	id<MTLCommandBuffer> processCommandBuffer = [commandQueue commandBuffer];
-	if (!processCommandBuffer)
+	if (@available(iOS 9.0, *))
 	{
-		errno = ENOMEM;
-		return false;
-	}
+		id<MTLCommandBuffer> processCommandBuffer = [commandQueue commandBuffer];
+		if (!processCommandBuffer)
+		{
+			errno = ENOMEM;
+			return false;
+		}
 
-	id<MTLBlitCommandEncoder> encoder = [processCommandBuffer blitCommandEncoder];
-	if (!encoder)
-	{
-		errno = ENOMEM;
-		return false;
-	}
+		id<MTLBlitCommandEncoder> encoder = [processCommandBuffer blitCommandEncoder];
+		if (!encoder)
+		{
+			errno = ENOMEM;
+			return false;
+		}
 
-	id<MTLBuffer> deviceClearVertices = [device newBufferWithLength: sizeof(clearVertexData)
-		options: MTLResourceStorageModePrivate];
-	if (!deviceClearVertices)
-	{
-		errno = ENOMEM;
-		return false;
-	}
+		id<MTLBuffer> deviceClearVertices = [device newBufferWithLength: sizeof(clearVertexData)
+			options: MTLResourceStorageModePrivate];
+		if (!deviceClearVertices)
+		{
+			errno = ENOMEM;
+			return false;
+		}
 
-	[encoder copyFromBuffer: clearVertices sourceOffset: 0 toBuffer: deviceClearVertices
-		destinationOffset: 0 size: sizeof(clearVertexData)];
-	[encoder endEncoding];
-	[processCommandBuffer commit];
-	clearVertices = deviceClearVertices;
-#else
-	DS_UNUSED(commandQueue);
-#endif
+		[encoder copyFromBuffer: clearVertices sourceOffset: 0 toBuffer: deviceClearVertices
+			  destinationOffset: 0 size: sizeof(clearVertexData)];
+		[encoder endEncoding];
+		[processCommandBuffer commit];
+		clearVertices = deviceClearVertices;
+	}
 
 	renderer->clearNoDepthStencilState = CFBridgingRetain(clearNoDepthStencilState);
 	renderer->clearDepthState = CFBridgingRetain(clearDepthState);
@@ -289,7 +295,9 @@ static bool createSharedResources(dsMTLRenderer* renderer, id<MTLDevice> device,
 
 static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 {
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if (!@available(iOS 9.0, *))
+		return nil;
+
 	id<MTLCommandQueue> queue = (__bridge id<MTLCommandQueue>)renderer->commandQueue;
 	id<MTLCommandBuffer> resourceCommandBuffer = nil;
 	id<MTLBlitCommandEncoder> encoder = nil;
@@ -395,9 +403,6 @@ static id<MTLCommandBuffer> processResources(dsMTLRenderer* renderer)
 	if (encoder)
 		[encoder endEncoding];
 	return resourceCommandBuffer;
-#else
-	return nil;
-#endif
 }
 
 static bool bindVertexBuffers(dsCommandBuffer* commandBuffer, const dsShader* shader,
@@ -949,30 +954,44 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 
 #if DS_MAC
 		baseRenderer->hasStartInstance = true;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-		baseRenderer->hasStartInstance = [device supportsFamily: MTLGPUFamilyApple3];
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		baseRenderer->hasStartInstance =
-			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
 #else
-		baseRenderer->hasStartInstance = true;
-#endif
-
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
-		baseRenderer->hasDualSrcBlend = true;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-		baseRenderer->hasDualSrcBlend = baseRenderer->hasDepthClamp =
-			[device supportsFamily: MTLGPUFamilyApple4];
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		baseRenderer->hasDualSrcBlend = baseRenderer->hasDepthClamp =
-			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
-#else
-		baseRenderer->hasDualSrcBlend = false;
-		baseRenderer->hasDepthClamp = false;
+		if (@available(iOS 13.0, *))
+			baseRenderer->hasStartInstance = [device supportsFamily: MTLGPUFamilyApple3];
+		else if (@available(iOS 9.0, *))
+		{
+			DS_PUSH_DEPRECATION_WARNINGS
+			baseRenderer->hasStartInstance =
+				[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+			DS_POP_DEPRECATION_WARNINGS
+		}
+		else
+			baseRenderer->hasStartInstance = true;
 #endif
 
 #if DS_MAC
+		if (@available(macOS 10.12, *))
+			baseRenderer->hasDualSrcBlend = true;
+		else
+			baseRenderer->hasDualSrcBlend = false;
 		baseRenderer->hasDepthClamp = true;
+#else
+		if (@available(iOS 13.0, *))
+		{
+			baseRenderer->hasDualSrcBlend = baseRenderer->hasDepthClamp =
+				[device supportsFamily: MTLGPUFamilyApple4];
+		}
+		else if (@available(iOS 11.0, *))
+		{
+			DS_PUSH_DEPRECATION_WARNINGS
+			baseRenderer->hasDualSrcBlend = baseRenderer->hasDepthClamp =
+				[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
+			DS_POP_DEPRECATION_WARNINGS
+		}
+		else
+		{
+			baseRenderer->hasDualSrcBlend = false;
+			baseRenderer->hasDepthClamp = false;
+		}
 #endif
 
 		baseRenderer->hasIndependentBlend = true;
@@ -982,21 +1001,35 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->hasDepthBiasClamp = true;
 #if DS_MAC
 		baseRenderer->hasDepthStencilMultisampleResolve = true;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-		baseRenderer->hasDepthStencilMultisampleResolve =
-			[device supportsFamily: MTLGPUFamilyApple3];
 #else
-		baseRenderer->hasDepthStencilMultisampleResolve =
-			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+		if (@available(iOS 13.0, *))
+		{
+			baseRenderer->hasDepthStencilMultisampleResolve =
+				[device supportsFamily: MTLGPUFamilyApple3];
+		}
+		else if (@available(iOS 9.0, *))
+		{
+			DS_PUSH_DEPRECATION_WARNINGS
+			baseRenderer->hasDepthStencilMultisampleResolve =
+				[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily3_v1];
+			DS_POP_DEPRECATION_WARNINGS
+		}
+		else
+			baseRenderer->hasDepthStencilMultisampleResolve = false;
 #endif
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101500 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 130000
-		baseRenderer->hasFragmentInputs = [device supportsFamily: MTLGPUFamilyApple4];
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-		baseRenderer->hasFragmentInputs =
-			[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
-#else
-		baseRenderer->hasFragmentInputs = false;
+		if (@available(iOS 13.0, macOS 10.15, *))
+			baseRenderer->hasFragmentInputs = [device supportsFamily: MTLGPUFamilyApple4];
+#if DS_IOS
+		else if (@available(iOS 11.0, *))
+		{
+			DS_PUSH_DEPRECATION_WARNINGS
+			baseRenderer->hasFragmentInputs =
+				[device supportsFeatureSet: MTLFeatureSet_iOS_GPUFamily4_v1];
+			DS_POP_DEPRECATION_WARNINGS
+		}
 #endif
+		else
+			baseRenderer->hasFragmentInputs = false;
 		baseRenderer->strictRenderPassSecondaryCommands = false;
 
 		baseRenderer->resourceManager = dsMTLResourceManager_create(allocator, baseRenderer);
@@ -1262,14 +1295,16 @@ dsGfxFenceResult dsMTLRenderer_waitForSubmit(
 
 void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffer)
 {
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if (!@available(iOS 9.0, *))
+		return;
+
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 
 	DS_VERIFY(dsSpinlock_lock(&mtlRenderer->processBuffersLock));
 
 	uint32_t index = mtlRenderer->processBufferCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, mtlRenderer->processBuffers,
-		mtlRenderer->processBufferCount, mtlRenderer->maxProcessBuffers, 1))
+			mtlRenderer->processBufferCount, mtlRenderer->maxProcessBuffers, 1))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->processBuffersLock));
 		return;
@@ -1277,15 +1312,13 @@ void dsMTLRenderer_processBuffer(dsRenderer* renderer, dsMTLGfxBufferData* buffe
 
 	mtlRenderer->processBuffers[index] = dsLifetime_addRef(buffer->lifetime);
 	DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->processBuffersLock));
-#else
-	DS_UNUSED(renderer);
-	DS_UNUSED(buffer);
-#endif
 }
 
 void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 {
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
+	if (!@available(iOS 9.0, *))
+		return;
+
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
 	dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
 
@@ -1293,7 +1326,7 @@ void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 
 	uint32_t index = mtlRenderer->processTextureCount;
 	if (!DS_RESIZEABLE_ARRAY_ADD(renderer->allocator, mtlRenderer->processTextures,
-		mtlRenderer->processTextureCount, mtlRenderer->maxProcessTextures, 1))
+			mtlRenderer->processTextureCount, mtlRenderer->maxProcessTextures, 1))
 	{
 		DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->processTexturesLock));
 		return;
@@ -1301,10 +1334,6 @@ void dsMTLRenderer_processTexture(dsRenderer* renderer, dsTexture* texture)
 
 	mtlRenderer->processTextures[index] = dsLifetime_addRef(mtlTexture->lifetime);
 	DS_VERIFY(dsSpinlock_unlock(&mtlRenderer->processTexturesLock));
-#else
-	DS_UNUSED(renderer);
-	DS_UNUSED(texture);
-#endif
 }
 
 id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
@@ -1442,11 +1471,14 @@ id<MTLRenderPipelineState> dsMTLRenderer_getClearPipeline(dsRenderer* renderer,
 			if (!(colorMask & (1 << i)))
 				colorDescriptor.writeMask = MTLColorWriteMaskNone;
 		}
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-		descriptor.rasterSampleCount = samples;
-#else
-		descriptor.sampleCount = samples;
-#endif
+		if (@available(iOS 11.0, macOS 10.13, *))
+			descriptor.rasterSampleCount = samples;
+		else
+		{
+			DS_PUSH_DEPRECATION_WARNINGS
+			descriptor.sampleCount = samples;
+			DS_POP_DEPRECATION_WARNINGS
+		}
 		descriptor.depthAttachmentPixelFormat = depthFormat;
 		descriptor.stencilAttachmentPixelFormat = stencilFormat;
 

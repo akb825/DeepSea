@@ -31,6 +31,12 @@
 #import <Metal/MTLRenderCommandEncoder.h>
 #import <Metal/MTLVertexDescriptor.h>
 
+#define DS_PUSH_DEPRECATION_WARNINGS \
+	_Pragma("GCC diagnostic push") \
+	_Pragma("GCC diagnostic ignored \"-Wdeprecated-declarations\"")
+
+#define DS_POP_DEPRECATION_WARNINGS _Pragma("GCC diagnostic pop")
+
 // This is used by SPIRV-Cross to create the shader.
 #define DS_IMAGE_BUFFER_WIDTH 4096
 #define DS_NOT_SUBMITTED ((uint64_t)-1)

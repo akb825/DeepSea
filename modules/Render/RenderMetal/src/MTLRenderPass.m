@@ -331,10 +331,11 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 		}
 	}
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-	if (framebuffer->layers > 1)
-		descriptor.renderTargetArrayLength = framebuffer->layers;
-#endif
+	if (@available(iOS 12.0, *))
+	{
+		if (framebuffer->layers > 1)
+			descriptor.renderTargetArrayLength = framebuffer->layers;
+	}
 
 	return descriptor;
 }

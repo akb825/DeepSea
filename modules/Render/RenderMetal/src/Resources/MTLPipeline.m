@@ -120,53 +120,26 @@ static MTLBlendFactor convertBlendFactor(mslBlendFactor factor, MTLBlendFactor d
 			return MTLBlendFactorOneMinusBlendAlpha;
 		case mslBlendFactor_SrcAlphaSaturate:
 			return MTLBlendFactorSourceAlphaSaturated;
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 		case mslBlendFactor_Src1Color:
-			return MTLBlendFactorSource1Color;
-		case mslBlendFactor_OneMinusSrc1Color:
-			return MTLBlendFactorOneMinusSource1Color;
-		case mslBlendFactor_Src1Alpha:
-			return MTLBlendFactorSource1Alpha;
-		case mslBlendFactor_OneMinusSrc1Alpha:
-			return MTLBlendFactorOneMinusSource1Alpha;
-#else
-		case mslBlendFactor_Src1Color:
+			if (@available(iOS 11.0, macOS 10.12, *))
+				return MTLBlendFactorSource1Color;
 			return MTLBlendFactorSourceColor;
 		case mslBlendFactor_OneMinusSrc1Color:
+			if (@available(iOS 11.0, macOS 10.12, *))
+				return MTLBlendFactorOneMinusSource1Color;
 			return MTLBlendFactorOneMinusSourceColor;
 		case mslBlendFactor_Src1Alpha:
+			if (@available(iOS 11.0, macOS 10.12, *))
+				return MTLBlendFactorSource1Alpha;
 			return MTLBlendFactorSourceAlpha;
 		case mslBlendFactor_OneMinusSrc1Alpha:
+			if (@available(iOS 11.0, macOS 10.12, *))
+				return MTLBlendFactorOneMinusSource1Alpha;
 			return MTLBlendFactorOneMinusSourceAlpha;
-#endif
 		default:
 			return defaultValue;
 	}
 }
-
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-static MTLPrimitiveTopologyClass getPrimitiveTopology(dsPrimitiveType type)
-{
-	switch (type)
-	{
-		case dsPrimitiveType_PointList:
-			return MTLPrimitiveTopologyClassPoint;
-		case dsPrimitiveType_LineList:
-		case dsPrimitiveType_LineStrip:
-		case dsPrimitiveType_LineListAdjacency:
-			return MTLPrimitiveTopologyClassLine;
-		case dsPrimitiveType_TriangleList:
-		case dsPrimitiveType_TriangleStrip:
-		case dsPrimitiveType_TriangleFan:
-		case dsPrimitiveType_TriangleStripAdjacency:
-		case dsPrimitiveType_PatchList:
-			return MTLPrimitiveTopologyClassTriangle;
-		default:
-			DS_ASSERT(false);
-			return MTLPrimitiveTopologyClassTriangle;
-	}
-}
-#endif
 
 static bool setupVertexState(dsShader* shader, MTLRenderPipelineDescriptor* descriptor,
 	const dsVertexFormat formats[DS_MAX_GEOMETRY_VERTEX_BUFFERS])
@@ -288,24 +261,47 @@ static void setupRasterState(dsShader* shader, MTLRenderPipelineDescriptor* desc
 	dsMTLShader* mtlShader = (dsMTLShader*)shader;
 	const mslRasterizationState* rasterState = &mtlShader->renderState.rasterizationState;
 	const mslMultisampleState* multisampleState = &mtlShader->renderState.multisampleState;
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-	descriptor.rasterSampleCount = samples;
-#else
-	descriptor.sampleCount = samples;
-#endif
+	if (@available(iOS 11.0, macOS 10.13, *))
+		descriptor.rasterSampleCount = samples;
+	else
+	{
+		DS_PUSH_DEPRECATION_WARNINGS
+		descriptor.sampleCount = samples;
+		DS_POP_DEPRECATION_WARNINGS
+	}
 	descriptor.alphaToCoverageEnabled = multisampleState->alphaToCoverageEnable == mslBool_True;
 	descriptor.alphaToOneEnabled = multisampleState->alphaToOneEnable == mslBool_True;
 	descriptor.rasterizationEnabled = rasterState->rasterizerDiscardEnable != mslBool_False;
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 120000
-	descriptor.inputPrimitiveTopology = getPrimitiveTopology(primitiveType);
-#else
-	DS_UNUSED(primitiveType);
-#endif
+
+	if (@available(iOS 12.0, *))
+	{
+		switch (primitiveType)
+		{
+			case dsPrimitiveType_PointList:
+				descriptor.inputPrimitiveTopology = MTLPrimitiveTopologyClassPoint;
+				break;
+			case dsPrimitiveType_LineList:
+			case dsPrimitiveType_LineStrip:
+			case dsPrimitiveType_LineListAdjacency:
+				descriptor.inputPrimitiveTopology = MTLPrimitiveTopologyClassLine;
+				break;
+			case dsPrimitiveType_TriangleList:
+			case dsPrimitiveType_TriangleStrip:
+			case dsPrimitiveType_TriangleFan:
+			case dsPrimitiveType_TriangleListAdjacency:
+			case dsPrimitiveType_TriangleStripAdjacency:
+			case dsPrimitiveType_PatchList:
+				descriptor.inputPrimitiveTopology = MTLPrimitiveTopologyClassTriangle;
+				break;
+		}
+	}
 }
 
 static void setupBufferInfos(dsShader* shader, MTLRenderPipelineDescriptor* descriptor)
 {
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+	if (!@available(iOS 11.0, macOS 10.13, *))
+		return;
+
 	dsMTLShader* mtlShader = (dsMTLShader*)shader;
 	if (mtlShader->stages[mslStage_Vertex].hasPushConstants)
 		descriptor.vertexBuffers[0].mutability = MTLMutabilityImmutable;
@@ -334,10 +330,6 @@ static void setupBufferInfos(dsShader* shader, MTLRenderPipelineDescriptor* desc
 				descriptor.fragmentBuffers[fragmentIndex].mutability = MTLMutabilityImmutable;
 		}
 	}
-#else
-	DS_UNUSED(shader);
-	DS_UNUSED(descriptor);
-#endif
 }
 
 uint32_t dsMTLPipeline_hash(uint32_t samples, dsPrimitiveType primitiveType,

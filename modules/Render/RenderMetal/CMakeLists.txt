@@ -13,7 +13,7 @@ ds_target_link_libraries(deepsea_render_metal PRIVATE MSL::Client "-framework Me
 	"-framework QuartzCore" "-framework CoreFoundation")
 if (IOS)
 	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework Foundation"
-		"-framework UIKit")
+		"-framework UIKit" "-framework CoreGraphics")
 else()
 	ds_target_link_libraries(deepsea_render_metal PRIVATE "-framework AppKit")
 endif()

@@ -27,9 +27,8 @@
 dsMTLTempBuffer* dsMTLTempBuffer_create(dsAllocator* allocator, id<MTLDevice> device)
 {
 	MTLResourceOptions options = MTLResourceCPUCacheModeDefaultCache;
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	options |= MTLResourceStorageModeShared;
-#endif
+	if (@available(iOS 9.0, *))
+		options |= MTLResourceStorageModeShared;
 	id<MTLBuffer> mtlBuffer = [device newBufferWithLength: DS_TEMP_BUFFER_CAPACITY
 		options: options];
 	if (!mtlBuffer)

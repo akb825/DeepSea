@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,41 +69,44 @@ dsMTLGfxBufferData* dsMTLGfxBufferData_create(dsResourceManager* resourceManager
 	else
 		resourceOptions = MTLResourceCPUCacheModeDefaultCache;
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	if (memoryHints & dsGfxMemory_GPUOnly)
-		resourceOptions |= MTLResourceStorageModePrivate;
-	else if ((memoryHints & dsGfxMemory_Read) || (memoryHints & dsGfxMemory_Stream) ||
-		(memoryHints & dsGfxMemory_Coherent))
+	bool needsCopy = false;
+	if (@available(iOS 9.0, *))
 	{
-		resourceOptions |= MTLResourceStorageModeShared;
-	}
-	else
-	{
-		if (mtlResourceManager->appleGpu)
+		if (memoryHints & dsGfxMemory_GPUOnly)
+		{
+			resourceOptions |= MTLResourceStorageModePrivate;
+			needsCopy = true;
+		}
+		else if ((memoryHints & dsGfxMemory_Read) || (memoryHints & dsGfxMemory_Stream) ||
+				 (memoryHints & dsGfxMemory_Coherent))
+		{
 			resourceOptions |= MTLResourceStorageModeShared;
-#if DS_MAC
+		}
 		else
 		{
-			resourceOptions |= MTLResourceStorageModeManaged;
-			buffer->managed = true;
+			if (mtlResourceManager->appleGpu)
+				resourceOptions |= MTLResourceStorageModeShared;
+#if DS_MAC
+			else
+			{
+				resourceOptions |= MTLResourceStorageModeManaged;
+				buffer->managed = true;
+			}
+#endif
 		}
-#endif
 	}
-#endif
 
 	id<MTLBuffer> mtlBuffer;
 	id<MTLBuffer> copyBuffer;
 	if (data)
 	{
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		if (resourceOptions & MTLResourceStorageModePrivate)
+		if (needsCopy)
 		{
 			copyBuffer = [device newBufferWithBytes: data length: size
 				options: MTLResourceCPUCacheModeWriteCombined];
 			mtlBuffer = [device newBufferWithLength: size options: resourceOptions];
 		}
 		else
-#endif
 			mtlBuffer = [device newBufferWithBytes: data length: size options: resourceOptions];
 	}
 	else
@@ -126,10 +129,12 @@ void dsMTLGfxBufferData_markAsUsed(dsMTLGfxBufferData* buffer)
 	DS_ATOMIC_STORE32(&buffer->used, &used);
 }
 
-id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, dsGfxFormat format,
-	size_t offset, size_t count)
+id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(
+	dsMTLGfxBufferData* buffer, dsGfxFormat format, size_t offset, size_t count)
 {
-#if DS_IOS || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
+	if (!@available(macOS 10.13, *))
+		return nil;
+
 	DS_VERIFY(dsSpinlock_lock(&buffer->bufferTextureLock));
 
 	for (uint32_t i = 0; i < buffer->bufferTextureCount; ++i)
@@ -178,10 +183,11 @@ id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, d
 		return nil;
 	}
 
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-	descriptor.storageMode = mtlBuffer.storageMode;
-	descriptor.cpuCacheMode = mtlBuffer.cpuCacheMode;
-#endif
+	if (@available(iOS 9.0, *))
+	{
+		descriptor.storageMode = mtlBuffer.storageMode;
+		descriptor.cpuCacheMode = mtlBuffer.cpuCacheMode;
+	}
 
 	MTLTextureUsage usage = MTLTextureUsageShaderRead;
 	if (buffer->usage & dsGfxBufferUsage_Image)
@@ -201,13 +207,6 @@ id<MTLTexture> dsMTLGfxBufferData_getBufferTexture(dsMTLGfxBufferData* buffer, d
 	DS_VERIFY(dsSpinlock_unlock(&buffer->bufferTextureLock));
 
 	return texture;
-#else
-	DS_UNUSED(buffer);
-	DS_UNUSED(format);
-	DS_UNUSED(offset);
-	DS_UNUSED(count);
-	return nil;
-#endif
 }
 
 void dsMTLGfxBufferData_process(dsMTLGfxBufferData* buffer, dsRenderer* renderer)

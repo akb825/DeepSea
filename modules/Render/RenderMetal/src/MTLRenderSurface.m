@@ -192,10 +192,11 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 			descriptor.width = renderSurface->width;
 			descriptor.height = renderSurface->height;
 			descriptor.sampleCount = renderer->surfaceSamples;
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-			descriptor.storageMode = MTLStorageModePrivate;
-			descriptor.usage = MTLTextureUsageRenderTarget;
-#endif
+			if (@available(iOS 9.0, *))
+			{
+				descriptor.storageMode = MTLStorageModePrivate;
+				descriptor.usage = MTLTextureUsageRenderTarget;
+			}
 
 			resolveSurface = [device newTextureWithDescriptor: descriptor];
 			if (!resolveSurface)
@@ -223,10 +224,13 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 				// Need to have separate depth and stencil surfaces.
 				switch (renderer->surfaceDepthStencilFormat)
 				{
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#if DS_MAC
 					case dsGfxFormat_D16S8:
-						depthPixelFormat = MTLPixelFormatDepth16Unorm;
-						stencilPixelFormat = MTLPixelFormatStencil8;
+						if (@available(macOS 10.12, *))
+						{
+							depthPixelFormat = MTLPixelFormatDepth16Unorm;
+							stencilPixelFormat = MTLPixelFormatStencil8;
+						}
 						break;
 #endif
 					case dsGfxFormat_D32S8_Float:
@@ -278,10 +282,11 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 			descriptor.width = renderSurface->width;
 			descriptor.height = renderSurface->height;
 			descriptor.sampleCount = renderer->surfaceSamples;
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-			descriptor.storageMode = MTLStorageModePrivate;
-			descriptor.usage = MTLTextureUsageRenderTarget;
-#endif
+			if (@available(iOS 9.0, *))
+			{
+				descriptor.storageMode = MTLStorageModePrivate;
+				descriptor.usage = MTLTextureUsageRenderTarget;
+			}
 
 			depthSurface = [device newTextureWithDescriptor: descriptor];
 			if (!depthSurface)
@@ -418,30 +423,45 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		bool hdr;
 		switch (renderer->surfaceColorSpace)
 		{
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
 			case dsRenderColorSpace_ExtendedLinearSRGB:
-				if (format == MTLPixelFormatRGBA16Float)
+				if (@available(iOS 10.0, macOS 10.12, *))
 				{
-					colorSpace = kCGColorSpaceExtendedLinearSRGB;
-					hdr = true;
+					if (format == MTLPixelFormatRGBA16Float)
+					{
+						colorSpace = kCGColorSpaceExtendedLinearSRGB;
+						hdr = true;
+					}
+					else
+					{
+						colorSpace = kCGColorSpaceLinearSRGB;
+						hdr = false;
+					}
 				}
 				else
 				{
-					colorSpace = kCGColorSpaceLinearSRGB;
+					colorSpace = kCGColorSpaceSRGB;
 					hdr = false;
 				}
 				break;
-#endif
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 126000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 101460
 			case dsRenderColorSpace_Rec2100PQ:
-#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 140000 || __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000
-				colorSpace = kCGColorSpaceITUR_2100_PQ;
-#else
-				colorSpace = kCGColorSpaceITUR_2020_PQ_EOTF;
-#endif
-				hdr = true;
+				if (@available(iOS 14.0, macOS 11.0, *))
+				{
+					colorSpace = kCGColorSpaceITUR_2100_PQ;
+					hdr = true;
+				}
+				else if (@available(iOS 12.6, macOS 10.14.6, *))
+				{
+					DS_PUSH_DEPRECATION_WARNINGS
+					colorSpace = kCGColorSpaceITUR_2020_PQ_EOTF;
+					hdr = true;
+					DS_POP_DEPRECATION_WARNINGS
+				}
+				else
+				{
+					colorSpace = kCGColorSpaceSRGB;
+					hdr = false;
+				}
 				break;
-#endif
 			default:
 				colorSpace = kCGColorSpaceSRGB;
 				hdr = false;
@@ -450,12 +470,12 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 
 		layer.pixelFormat = format;
 		layer.colorspace = CGColorSpaceCreateWithName(colorSpace);
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-		layer.displaySyncEnabled = renderer->vsync != dsVSync_Disabled;
+#if DS_MAC
+		if (@available(macOS 10.13, *))
+			layer.displaySyncEnabled = renderer->vsync != dsVSync_Disabled;
 #endif
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 160000
-		layer.wantsExtendedDynamicRangeContent = hdr;
-#endif
+		if (@available(iOS 16.0, *))
+			layer.wantsExtendedDynamicRangeContent = hdr;
 
 		size_t nameLen = strlen(name) + 1;
 		size_t fullSize = sizeof(dsMTLRenderSurface);
@@ -532,10 +552,13 @@ bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurf
 		renderSurface->preRotateWidth = renderSurface->width;
 		renderSurface->preRotateHeight = renderSurface->height;
 
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101300
-		bool vsync = renderer->vsync != dsVSync_Disabled;
-		if (layer.displaySyncEnabled != vsync)
-			layer.displaySyncEnabled = vsync;
+#if DS_MAC
+		if (@available(macOS 10.13, *))
+		{
+			bool vsync = renderer->vsync != dsVSync_Disabled;
+			if (layer.displaySyncEnabled != vsync)
+				layer.displaySyncEnabled = vsync;
+		}
 #endif
 
 		return createExtraSurfaces(renderer, renderSurface);

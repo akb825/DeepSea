@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,10 +51,13 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		// Need to have separate depth and stencil surfaces.
 		switch (info->format)
 		{
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101200
+#if DS_MAC
 			case dsGfxFormat_D16S8:
-				pixelFormat = MTLPixelFormatDepth16Unorm;
-				stencilPixelFormat = MTLPixelFormatStencil8;
+				if (@available(macOS 10.12, *))
+				{
+					pixelFormat = MTLPixelFormatDepth16Unorm;
+					stencilPixelFormat = MTLPixelFormatStencil8;
+				}
 				break;
 #endif
 			case dsGfxFormat_D32S8_Float:
@@ -128,15 +131,19 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			return NULL;
 		}
 
-#if __MAC_OS_X_VERSION_MIN_REQUIRED < 101400
-		if (info->depth > 0)
-		{
-			dsMTLTexture_destroy(resourceManager, baseTexture);
-			errno = EPERM;
-			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Multisampled texture areays aren't supported.");
-			return NULL;
-		}
+#if DS_MAC
+		if (!@available(macOS 10.14, *))
 #endif
+		{
+			if (info->depth > 0)
+			{
+				dsMTLTexture_destroy(resourceManager, baseTexture);
+				DS_LOG_ERROR(
+					DS_RENDER_METAL_LOG_TAG, "Multisampled texture arrays aren't supported.");
+				errno = EPERM;
+				return NULL;
+			}
+		}
 
 		return NULL;
 	}
@@ -155,15 +162,20 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		case dsTextureDim_2D:
 			if (info->depth > 0)
 			{
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
-				if (info->samples > 1 && !resolve)
-					descriptor.textureType = MTLTextureType2DMultisampleArray;
+#if DS_MAC
+				if (@available(macOS 10.14, *))
+				{
+					if (info->samples > 1 && !resolve)
+						descriptor.textureType = MTLTextureType2DMultisampleArray;
+					else
+						descriptor.textureType = MTLTextureType2DArray;
+				}
 				else
-					descriptor.textureType = MTLTextureType2DArray;
-#else
-				DS_ASSERT(info->samples == 1 || resolve);
-				descriptor.textureType = MTLTextureType2DArray;
 #endif
+				{
+					DS_ASSERT(info->samples == 1 || resolve);
+					descriptor.textureType = MTLTextureType2DArray;
+				}
 				descriptor.arrayLength = info->depth;
 			}
 			else
@@ -179,19 +191,22 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			descriptor.depth = info->depth;
 			break;
 		case dsTextureDim_Cube:
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 110000
-			if (info->depth > 0)
+			if (@available(iOS 11.0, *))
 			{
-				DS_ASSERT(resourceManager->hasCubeArrays);
-				descriptor.textureType = MTLTextureTypeCubeArray;
-				descriptor.arrayLength = info->depth;
+				if (info->depth > 0)
+				{
+					DS_ASSERT(resourceManager->hasCubeArrays);
+					descriptor.textureType = MTLTextureTypeCubeArray;
+					descriptor.arrayLength = info->depth;
+				}
+				else
+					descriptor.textureType = MTLTextureTypeCube;
 			}
 			else
+			{
+				DS_ASSERT(info->depth == 0);
 				descriptor.textureType = MTLTextureTypeCube;
-#else
-			DS_ASSERT(info->depth == 0);
-			descriptor.textureType = MTLTextureTypeCube;
-#endif
+			}
 			break;
 		default:
 			DS_ASSERT(false);
@@ -215,16 +230,16 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 			resourceOptions |= MTLResourceStorageModeShared;
 		else
 			resourceOptions |= MTLResourceStorageModeManaged;
-#elif __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		resourceOptions |= MTLResourceStorageModeShared;
+#else
+		if (@available(iOS 9.0, *))
+			resourceOptions |= MTLResourceStorageModeShared;
 #endif
 	}
 	else
 	{
 		resourceOptions = MTLResourceCPUCacheModeWriteCombined;
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		resourceOptions |= MTLResourceStorageModePrivate;
-#endif
+		if (@available(iOS 9.0, *))
+			resourceOptions |= MTLResourceStorageModePrivate;
 	}
 
 	descriptor.resourceOptions = resourceOptions;
@@ -278,16 +293,16 @@ static dsTexture* createTextureImpl(dsResourceManager* resourceManager, dsAlloca
 		descriptor.sampleCount = info->samples;
 
 		resourceOptions = MTLResourceCPUCacheModeDefaultCache;
-#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
-		resourceOptions |= MTLResourceStorageModePrivate;
-#endif
-#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 110000 || __IPHONE_OS_VERSION_MIN_REQUIRED >= 100000
-		if (mtlResourceManager->appleGpu &&
-			!(usage & (dsTextureUsage_CopyTo | dsTextureUsage_OffscreenContinue)))
+		if (@available(iOS 9.0, *))
+			resourceOptions |= MTLResourceStorageModePrivate;
+		if (@available(iOS 10.0, macOS 11.0, *))
 		{
-			resourceOptions |= MTLResourceStorageModeMemoryless;
+			if (mtlResourceManager->appleGpu &&
+				!(usage & (dsTextureUsage_CopyTo | dsTextureUsage_OffscreenContinue)))
+			{
+				resourceOptions |= MTLResourceStorageModeMemoryless;
+			}
 		}
-#endif
 		descriptor.resourceOptions = resourceOptions;
 		descriptor.usage = MTLTextureUsageRenderTarget;
 
@@ -330,16 +345,15 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 	@autoreleasepool
 	{
 		DS_UNUSED(size);
-		dsTexture* texture = createTextureImpl(resourceManager, allocator, usage, memoryHints, info,
-			false, false);
-		if (!texture)
-			return NULL;
+		dsTexture* texture = createTextureImpl(
+			resourceManager, allocator, usage, memoryHints, info, false, false);
+		if (!texture || !data)
+			return texture;
 
-		if (data)
+		dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
+		id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
+		if (@available(iOS 9.0, *))
 		{
-			dsMTLTexture* mtlTexture = (dsMTLTexture*)texture;
-			id<MTLTexture> realTexture = (__bridge id<MTLTexture>)mtlTexture->mtlTexture;
-	#if DS_MAC || __IPHONE_OS_VERSION_MIN_REQUIRED >= 90000
 			if (realTexture.storageMode == MTLStorageModePrivate)
 			{
 				dsMTLRenderer* renderer = (dsMTLRenderer*)resourceManager->renderer;
@@ -368,57 +382,56 @@ dsTexture* dsMTLTexture_create(dsResourceManager* resourceManager, dsAllocator* 
 
 				mtlTexture->copyTexture = CFBridgingRetain(realTexture);
 			}
-	#endif
+		}
 
-			uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
-			bool is1D = info->dimension == dsTextureDim_1D;
-			bool is3D = info->dimension == dsTextureDim_3D;
-			bool isPVR = dsIsMTLFormatPVR(info->format);
-			unsigned int formatSize = dsGfxFormat_size(info->format);
-			unsigned int blocksX, blocksY;
-			DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, info->format));
+		uint32_t faceCount = info->dimension == dsTextureDim_Cube ? 6 : 1;
+		bool is1D = info->dimension == dsTextureDim_1D;
+		bool is3D = info->dimension == dsTextureDim_3D;
+		bool isPVR = dsIsMTLFormatPVR(info->format);
+		unsigned int formatSize = dsGfxFormat_size(info->format);
+		unsigned int blocksX, blocksY;
+		DS_VERIFY(dsGfxFormat_blockDimensions(&blocksX, &blocksY, info->format));
 
-			const uint8_t* bytes = (const uint8_t*)data;
-			for (uint32_t i = 0; i < info->mipLevels; ++i)
+		const uint8_t* bytes = (const uint8_t*)data;
+		for (uint32_t i = 0; i < info->mipLevels; ++i)
+		{
+			uint32_t width = info->width >> i;
+			uint32_t height = info->height >> i;
+			uint32_t depth = is3D ? info->depth >> i : info->depth;
+
+			width = dsMax(width, 1U);
+			height = dsMax(height, 1U);
+			depth = dsMax(depth, 1U)*faceCount;
+
+			uint32_t blocksWide = (width + blocksX - 1)/blocksX;
+			uint32_t blocksHigh = (height + blocksX - 1)/blocksX;
+
+			if (is3D)
 			{
-				uint32_t width = info->width >> i;
-				uint32_t height = info->height >> i;
-				uint32_t depth = is3D ? info->depth >> i : info->depth;
-
-				width = dsMax(width, 1U);
-				height = dsMax(height, 1U);
-				depth = dsMax(depth, 1U)*faceCount;
-
-				uint32_t blocksWide = (width + blocksX - 1)/blocksX;
-				uint32_t blocksHigh = (height + blocksX - 1)/blocksX;
-
-				if (is3D)
+				MTLRegion region =
 				{
-					MTLRegion region =
-					{
-						{0, 0, 0},
-						{width, height, depth}
-					};
-					[realTexture replaceRegion: region mipmapLevel: i slice: 0
-						withBytes: bytes + dsTexture_layerOffset(info, 0, i)
-						bytesPerRow: isPVR ? 0 : formatSize*blocksWide
-						bytesPerImage: formatSize*blocksWide*blocksHigh];
-				}
-				else
+					{0, 0, 0},
+					{width, height, depth}
+				};
+				[realTexture replaceRegion: region mipmapLevel: i slice: 0
+					withBytes: bytes + dsTexture_layerOffset(info, 0, i)
+					bytesPerRow: isPVR ? 0 : formatSize*blocksWide
+					bytesPerImage: formatSize*blocksWide*blocksHigh];
+			}
+			else
+			{
+				MTLRegion region =
 				{
-					MTLRegion region =
-					{
-						{0, 0, 0},
-						{width, height, 1}
-					};
-					for (uint32_t j = 0; j < depth; ++j)
-					{
-						[realTexture replaceRegion: region mipmapLevel: i slice: j
-							withBytes: bytes + dsTexture_layerOffset(info, j, i)
-							bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
-							bytesPerImage: 0];
+					{0, 0, 0},
+					{width, height, 1}
+				};
+				for (uint32_t j = 0; j < depth; ++j)
+				{
+					[realTexture replaceRegion: region mipmapLevel: i slice: j
+						withBytes: bytes + dsTexture_layerOffset(info, j, i)
+						bytesPerRow: is1D || isPVR ? 0 : formatSize*blocksWide
+						bytesPerImage: 0];
 
-					}
 				}
 			}
 		}
