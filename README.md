@@ -50,9 +50,11 @@ For example, if you want to build for both 32-bit and 64-bit Windows, your first
 
 This will download the submodules, tools, and pre-built libraries. After this point, you can run either `./update.sh -a` to update git and all dependencies or `./update.sh -m` to just update the dependencies.
 
-> **Note:** When building on Linux, the freetype, harfbuzz, and SDL libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev`, `libharfbuzz-dev`, and `libsdl2-dev` should be installed. The `libgl1-mesa-dev` package is also required to compile the OpenGL backend.
+> **Note:** When building on Linux, the freetype and harfbuzz libraries aren't installed with the pre-built library packages since they are installed on nearly all Linux systems already. The development packages for these libraries must be installed when building DeepSea. In the case of Ubuntu, the `libfreetype6-dev` and `libharfbuzz-dev` should be installed. The `libgl1-mesa-dev` package is also required to compile the OpenGL backend.
 
 > **Note:** When updating on Windows, possible running `update.sh -a` will fail if the `update.sh` script was updated due to file locking. If this happens, run `git pull` manually before calling into the update script.
+
+> **Note:** When building on Mac, the Metal toolchain is required. It can be installed through Xcode or on the command-line with `xcodebuild -downloadComponent MetalToolchain`.
 
 # Platforms
 
