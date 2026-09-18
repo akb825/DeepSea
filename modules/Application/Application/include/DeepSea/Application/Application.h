@@ -207,12 +207,14 @@ DS_APPLICATION_EXPORT bool dsApplication_quit(dsApplication* application, int ex
  * check, a temporary hidden window will be created to check for compatiblity.
  *
  * @param application The application.
+ * @param display The display to check for support on. If NULL, this will return whether any display
+ *     supports the format.
  * @param formatHint The hint for the render surface format.
  * @param samples The number of anti-alias samples.
  * @return Whether the format is supported.
  */
-DS_APPLICATION_EXPORT bool dsApplication_supportsSurfaceFormat(
-	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+DS_APPLICATION_EXPORT bool dsApplication_supportsSurfaceFormat(const dsApplication* application,
+	const dsDisplayInfo* display, const dsRenderSurfaceHint* formatHint, uint32_t samples);
 
 /**
  * @brief Adds a custom event to be placed on the event queue.

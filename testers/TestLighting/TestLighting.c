@@ -478,7 +478,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	DS_VERIFY(dsRenderSurfaceHint_fromFormats(
 		&formatHint, dsGfxFormat_decorate(dsGfxFormat_R8G8B8A8, dsGfxFormat_UNorm),
 		dsGfxFormat_Unknown, dsRenderColorSpace_NonLinearSRGB, false));
-	if (!dsApplication_supportsSurfaceFormat(application, &formatHint, 1))
+	if (!dsApplication_supportsSurfaceFormat(application, NULL, &formatHint, 1))
 	{
 		DS_LOG_ERROR("TestLighting", "Rendering to standard SDR render surface not supported.");
 		return false;
@@ -489,7 +489,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 		&formatHint, dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10, dsGfxFormat_UNorm),
 		dsGfxFormat_Unknown, dsRenderColorSpace_Rec2100PQ, false));
 	const char* supportedStr;
-	if (dsApplication_supportsSurfaceFormat(application, &formatHint, 1))
+	if (dsApplication_supportsSurfaceFormat(application, NULL, &formatHint, 1))
 	{
 		supportedStr = "supported";
 		testLighting->supportedSurfaceFormats = 1 << SurfaceFormat_HDR10;
@@ -501,7 +501,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	DS_VERIFY(dsRenderSurfaceHint_fromFormats(
 		&formatHint, dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float),
 		dsGfxFormat_Unknown, dsRenderColorSpace_ExtendedLinearSRGB, false));
-	if (dsApplication_supportsSurfaceFormat(application, &formatHint, 1))
+	if (dsApplication_supportsSurfaceFormat(application, NULL, &formatHint, 1))
 	{
 		supportedStr = "supported";
 		testLighting->supportedSurfaceFormats = 1 << SurfaceFormat_HDR16;

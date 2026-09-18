@@ -871,11 +871,12 @@ typedef void (*dsQuitApplicationFunction)(dsApplication* application, int return
  * display and window handle.
  *
  * @param application The application.
+ * @param display The display to check for support on, or NULL to check for any display.
  * @param formatHint The hint for the render surface format.
  * @param samples The number of anti-alias samples.
  */
-typedef bool (*dsApplicationSupportsSurfaceFormat)(
-	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+typedef bool (*dsApplicationSupportsSurfaceFormat)(const dsApplication* application,
+	const dsDisplayInfo* display, const dsRenderSurfaceHint* formatHint, uint32_t samples);
 
 /**
  * @brief Function to add a custom event.

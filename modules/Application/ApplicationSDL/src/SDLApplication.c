@@ -456,6 +456,24 @@ inline static bool setDefaultGLAttributes(const dsRenderer* renderer)
 		renderer->surfaceSamples, renderer->stereoscopic);
 }
 
+static bool displaySupportsFormat(const dsApplication* application, const dsDisplayInfo* display,
+	const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	dsVector2i position = {{SDL_WINDOWPOS_CENTERED_DISPLAY((uint32_t)display->id), 0}};
+	SDL_Window* window = dsSDLWindow_createInternalWindow(
+		application, NULL, &position, 1, 1, dsWindowFlags_Hidden);
+	if (!window)
+		return false;
+
+	void* displayHandle;
+	void* windowHandle;
+	bool result = dsSDLWindow_getWindowHandle(&displayHandle, &windowHandle, application, window) &&
+		dsRenderSurface_supportsFormat(application->renderer, displayHandle, windowHandle,
+			dsRenderSurfaceType_Window, formatHint, samples);
+	SDL_DestroyWindow(window);
+	return result;
+}
+
 static bool updateWindowState(
 	dsEvent* outEvent, dsApplication* application, dsWindow* window, bool validDisplayOnly)
 {
@@ -1309,8 +1327,8 @@ void dsSDLApplication_quit(dsApplication* application, int exitCode)
 	sdlApplication->exitCode = exitCode;
 }
 
-bool dsSDLApplication_supportsSurfaceFormat(
-	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+bool dsSDLApplication_supportsSurfaceFormat(const dsApplication* application,
+	const dsDisplayInfo* display, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
 	const dsRenderer* renderer = application->renderer;
 	bool needsGLAttributes = renderer->rendererID == DS_GL_RENDERER_ID ||
@@ -1329,21 +1347,20 @@ bool dsSDLApplication_supportsSurfaceFormat(
 		}
 	}
 
-	SDL_Window* window = dsSDLWindow_createInternalWindow(
-		application, NULL, NULL, 1, 1, dsWindowFlags_Hidden);
-	if (!window)
+	bool result = false;
+	if (display)
+		result = displaySupportsFormat(application, display, formatHint, samples);
+	else
 	{
-		if (needsGLAttributes)
-			setDefaultGLAttributes(renderer);
-		return false;
+		for (uint32_t i = 0; i < application->displayCount; ++i)
+		{
+			if (displaySupportsFormat(application, application->displays[i], formatHint, samples))
+			{
+				result = true;
+				break;
+			}
+		}
 	}
-
-	void* displayHandle;
-	void* windowHandle;
-	bool result = dsSDLWindow_getWindowHandle(&displayHandle, &windowHandle, application, window) &&
-		dsRenderSurface_supportsFormat(renderer, displayHandle, windowHandle,
-			dsRenderSurfaceType_Window, formatHint, samples) > 0;
-
 	if (needsGLAttributes)
 		setDefaultGLAttributes(renderer);
 	return result;

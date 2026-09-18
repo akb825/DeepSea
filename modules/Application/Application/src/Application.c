@@ -348,8 +348,8 @@ bool dsApplication_quit(dsApplication* application, int exitCode)
 	return true;
 }
 
-bool dsApplication_supportsSurfaceFormat(
-	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+bool dsApplication_supportsSurfaceFormat(const dsApplication* application,
+	const dsDisplayInfo* display, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
 	if (!application || !formatHint)
 		return false;
@@ -361,7 +361,7 @@ bool dsApplication_supportsSurfaceFormat(
 
 	if (!application->supportsSurfaceFormat)
 		return false;
-	return application->supportsSurfaceFormat(application, formatHint, samples);
+	return application->supportsSurfaceFormat(application, display, formatHint, samples);
 }
 
 bool dsApplication_addCustomEvent(dsApplication* application, const dsCustomEvent* event)
