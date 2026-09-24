@@ -101,7 +101,9 @@ enum TextureFormat : ubyte
 	PVRTC1_RGBA_4BPP,
 	PVRTC2_RGBA_2BPP,
 	PVRTC2_RGBA_4BPP,
-	SurfaceColor,
+	SDRSurfaceColor,
+	HDRSurfaceColor,
+	PreferredSurfaceColor,
 	SurfaceDepthStencil
 }
 

@@ -488,10 +488,11 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	DS_VERIFY(dsRenderSurfaceHint_fromFormats(
 		&formatHint, dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10, dsGfxFormat_UNorm),
 		dsGfxFormat_Unknown, dsRenderColorSpace_Rec2100PQ, false));
+	int supportsFormat = dsApplication_canSupportSurfaceFormat(application, &formatHint, 1);
 	const char* supportedStr;
-	if (dsApplication_supportsSurfaceFormat(application, NULL, &formatHint, 1))
+	if (supportsFormat)
 	{
-		supportedStr = "supported";
+		supportedStr = supportsFormat < 0 ? "maybe supported" : "supported";
 		testLighting->supportedSurfaceFormats = 1 << SurfaceFormat_HDR10;
 	}
 	else
@@ -501,9 +502,10 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	DS_VERIFY(dsRenderSurfaceHint_fromFormats(
 		&formatHint, dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float),
 		dsGfxFormat_Unknown, dsRenderColorSpace_ExtendedLinearSRGB, false));
-	if (dsApplication_supportsSurfaceFormat(application, NULL, &formatHint, 1))
+	supportsFormat = dsApplication_canSupportSurfaceFormat(application, &formatHint, 1);
+	if (supportsFormat)
 	{
-		supportedStr = "supported";
+		supportedStr = supportsFormat < 0 ? "maybe supported" : "supported";
 		testLighting->supportedSurfaceFormats = 1 << SurfaceFormat_HDR16;
 	}
 	else
@@ -527,7 +529,8 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
 	testLighting->window = dsWindow_create(application, allocator, "Test Lighting", NULL, NULL,
-		width, height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
+		width, height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations,
+		dsRenderSurfaceColorType_SDR);
 	if (!testLighting->window)
 	{
 		DS_LOG_ERROR_F("TestLighting", "Couldn't create window: %s", dsErrorString(errno));

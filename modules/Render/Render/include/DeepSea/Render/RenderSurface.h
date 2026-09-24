@@ -88,7 +88,8 @@ DS_RENDER_EXPORT bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result,
 	dsRenderSurfaceRotation rotation);
 
 /**
- * @brief Checks wiether a render surface will be supported with the current default format.
+ * @brief Checks wiether the handle for creating a render surface will be supported with the current
+ *     default format.
  *
  * This will do a best-effort check, but isn't necessarily a 100% guarantee render surface creation
  * will succeed if this returns true.
@@ -99,15 +100,17 @@ DS_RENDER_EXPORT bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result,
  *     default format will work with any surface, but not all implementations can conclusively
  *     determine this without a surface to test.
  * @param type The type of the render surface.
+ * @param colorType The color type used by the render surface.
  * @return 1 if the surface is supported, 0 if the surface is unsupported, or -1 if it can't be
  *     determined. The most commmon case where -1 would be returned is if a NULL osHandle is
  *     provided and the implementation can't conclusively whether the format can be used.
  */
-DS_RENDER_EXPORT int dsRenderSurface_isSupported(
-	const dsRenderer* renderer, void* displayHandle, void* osHandle, dsRenderSurfaceType type);
+DS_RENDER_EXPORT int dsRenderSurface_isHandleSupported(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceColorType colorType);
 
 /**
- * @brief Checks wiether a render surface will be supported with the a given format format.
+ * @brief Checks wiether a the handle for creating a render surface will be supported with the a
+ *     given format.
  *
  * This is intended to check for support for a specific surface format before setting the surface
  * format on dsRenderer. For example, it can be used to check if HDR is supported before enabling
@@ -125,9 +128,9 @@ DS_RENDER_EXPORT int dsRenderSurface_isSupported(
  *     determined. The most commmon case where -1 would be returned is if a NULL osHandle is
  *     provided and the implementation can't conclusively whether the format can be used.
  */
-DS_RENDER_EXPORT int dsRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
-	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
-	uint32_t samples);
+DS_RENDER_EXPORT int dsRenderSurface_handleSupportsFormat(const dsRenderer* renderer,
+	void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	const dsRenderSurfaceHint* formatHint, uint32_t samples);
 
 /**
  * @brief Creates a render surface.
@@ -141,21 +144,67 @@ DS_RENDER_EXPORT int dsRenderSurface_supportsFormat(const dsRenderer* renderer, 
  *     macOS/iOS, it will actually be a view or Metal layer.
  * @param type The render surface type.
  * @param usage Flags to determine how the render surface will be used.
+ * @param colorType The color type used by the render surface.
  * @param widthHint Hint for the width of the surface.
  * @param heightHint Hint for the height of the surface.
  * @return The created renderbuffer, or NULL if it couldn't be created.
  */
 DS_RENDER_EXPORT dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer,
 	dsAllocator* allocator, const char* name, void* displayHandle, void* osHandle,
-	dsRenderSurfaceType type, dsRenderSurfaceUsage usage, unsigned int widthHint,
-	unsigned int heightHint);
+	dsRenderSurfaceType type, dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType,
+	unsigned int widthHint, unsigned int heightHint);
+
+/**
+ * @brief Checks whether a render surface is still valid.
+ *
+ * In some situations a render surface may become invalid, most commonly when using HDR formats. For
+ * example, on some systems moving a window from a monitor that supports HDR to a monitor that
+ * doesn't may leave the render surface in an invalid state.
+ *
+ * @param renderSurface The render surface to check.
+ * @return Whether the render surface is sstill valid.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_isValid(const dsRenderSurface* renderSurface);
+
+/**
+ * @brief Checks whether a render surface supports a color type.
+ * @param renderSurface The render surface to check.
+ * @param colorType The color type to check.
+ * @return Whether the render surface supports the format for colorType.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_supportsColorType(
+	const dsRenderSurface* renderSurface, dsRenderSurfaceColorType colorType);
+
+/**
+ * @brief Checks whether a render surface supports a format.
+ * @param renderSurface The render surface to check.
+ * @param formatHint The hint for the render surface format.
+ * @param samples The number of anti-alias samples.
+ * @return Whether the render surface supports the format.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_supportsFormat(
+	const dsRenderSurface* renderSurface, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+
+/**
+ * @brief Sets the color type on a render surface.
+ *
+ * This may only be called when the renderer supports dynamic render surface formats. The new color
+ * type will take affect when the render surface is next updated.
+ *
+ * @remark errno will be set on failure.
+ * @param renderSurface The render surface to set the color type on.
+ * @param colorType The color type to use.
+ * @return False if the color type couldn't be set.
+ */
+DS_RENDER_EXPORT bool dsRenderSurface_setColorType(
+	dsRenderSurface* renderSurface, dsRenderSurfaceColorType colorType);
 
 /**
  * @brief Updates a render surface.
  * @param renderSurface The render surface to update.
  * @param widthHint Hint for the width of the surface.
  * @param heightHint Hint for the height of the surface.
- * @return True if the render surface was resized. Any framebuffers that use the render surface
+ * @return True if the render surface was changed. Any framebuffers that use the render surface
  *     should be re-created with the new parameters.
  */
 DS_RENDER_EXPORT bool dsRenderSurface_update(

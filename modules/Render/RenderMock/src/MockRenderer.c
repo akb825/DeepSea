@@ -26,9 +26,12 @@
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
+
 #include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/Resources/Texture.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
 #include <DeepSea/Render/Renderer.h>
 
 #include <string.h>
@@ -63,23 +66,46 @@ bool dsMockRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsMockRenderer_setSurfaceFormat(
-	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+bool dsMockRenderer_setSurfaceFormat(dsRenderer* renderer, const dsRenderSurfaceHint* sdrFormatHint,
+	const dsRenderSurfaceHint* hdrFormatHint, uint32_t samples, bool preferHDR)
 {
 	DS_ASSERT(renderer);
-	DS_UNUSED(renderer);
-	DS_UNUSED(formatHint);
-	DS_UNUSED(samples);
 
+	if (sdrFormatHint)
+	{
+		renderer->sdrSurfaceColorFormat = dsRenderSurfaceHint_colorFormat(sdrFormatHint,
+			dsGfxFormat_R5G6B5, dsGfxFormat_R8G8B8, dsGfxFormat_R8G8B8A8, dsGfxFormat_A2R10G10B10);
+		renderer->sdrSurfaceColorSpace = sdrFormatHint->colorSpace;
+		renderer->surfaceDepthStencilFormat = dsRenderSurfaceHint_depthStencilFormat(sdrFormatHint);
+	}
+
+	if (hdrFormatHint)
+	{
+		renderer->hdrSurfaceColorFormat = dsRenderSurfaceHint_colorFormat(hdrFormatHint,
+			dsGfxFormat_R5G6B5, dsGfxFormat_R8G8B8, dsGfxFormat_R8G8B8A8, dsGfxFormat_A2R10G10B10);
+		renderer->hdrSurfaceColorSpace = hdrFormatHint->colorSpace;
+	}
+
+	if (preferHDR)
+	{
+		renderer->preferredSurfaceColorFormat = renderer->hdrSurfaceColorFormat;
+		renderer->preferredSurfaceColorSpace = renderer->hdrSurfaceColorSpace;
+	}
+	else
+	{
+		renderer->preferredSurfaceColorFormat = renderer->sdrSurfaceColorFormat;
+		renderer->preferredSurfaceColorSpace = renderer->sdrSurfaceColorSpace;
+	}
+
+	renderer->surfaceSamples = samples;
 	return true;
 }
 
 bool dsMockRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
 {
 	DS_ASSERT(renderer);
-	DS_UNUSED(renderer);
-	DS_UNUSED(samples);
 
+	renderer->defaultSamples = samples;
 	return true;
 }
 
@@ -431,8 +457,12 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->maxSurfaceSamples = 16;
 	renderer->maxAnisotropy = 16;
 
-	renderer->surfaceColorFormat = dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
-	renderer->surfaceColorSpace = dsRenderColorSpace_NonLinearSRGB;
+	renderer->sdrSurfaceColorFormat = renderer->preferredSurfaceColorFormat =
+		dsGfxFormat_decorate(dsGfxFormat_R8G8B8, dsGfxFormat_UNorm);
+	renderer->sdrSurfaceColorSpace = renderer->preferredSurfaceColorSpace =
+		dsRenderColorSpace_NonLinearSRGB;
+	renderer->hdrSurfaceColorFormat = dsGfxFormat_Unknown;
+	renderer->hdrSurfaceColorSpace = dsRenderColorSpace_NonLinearSRGB;
 	renderer->surfaceDepthStencilFormat = dsGfxFormat_D24S8;
 	renderer->surfaceSamples = 4;
 	renderer->defaultSamples = 4;
@@ -443,7 +473,8 @@ dsRenderer* dsMockRenderer_create(dsAllocator* allocator)
 	renderer->projectionOptions = dsProjectionMatrixOptions_HalfZRange;
 	renderer->singleBuffer = false;
 	renderer->stereoscopic = false;
-	renderer->vsync = true;
+	renderer->vsync = dsVSync_Disabled;
+	renderer->dynamicRenderSurfaceFormats = true;
 	renderer->hasGeometryShaders = true;
 	renderer->hasTessellationShaders = true;
 	renderer->hasNativeMultidraw = true;

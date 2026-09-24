@@ -29,7 +29,7 @@
 
 #include <string.h>
 
-int dsGLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+int dsGLRenderSurface_handleSupportsFormat(const dsRenderer* renderer, void* displayHandle,
 	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
 	uint32_t samples)
 {
@@ -56,7 +56,8 @@ int dsGLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHa
 
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
+	dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType, unsigned int widthHint,
+	unsigned int heightHint)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
@@ -64,6 +65,13 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	DS_UNUSED(displayHandle);
 	DS_UNUSED(widthHint);
 	DS_UNUSED(heightHint);
+
+	if (colorType == dsRenderSurfaceColorType_HDR)
+	{
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "HDR render surfaces not supported.");
+		errno = EPERM;
+		return false;
+	}
 
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	void* display = glRenderer->options.gfxDisplay;
@@ -101,11 +109,16 @@ dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	memcpy((void*)baseSurface->name, name, nameLen);
 	baseSurface->surfaceType = type;
 	baseSurface->usage = usage;
-	baseSurface->rotation = dsRenderSurfaceRotation_0;
 	DS_VERIFY(dsGLPlatform_getSurfaceSize(&baseSurface->width, &baseSurface->height,
 		&glRenderer->platform, display, type, glSurface));
 	baseSurface->preRotateWidth = baseSurface->width;
 	baseSurface->preRotateHeight = baseSurface->height;
+	baseSurface->rotation = dsRenderSurfaceRotation_0;
+	baseSurface->colorType = colorType;
+	baseSurface->colorFormat = renderer->sdrSurfaceColorFormat;
+	baseSurface->colorSpace = renderer->sdrSurfaceColorSpace;
+	baseSurface->depthStencilFormat = renderer->surfaceDepthStencilFormat;
+	baseSurface->samples = renderer->surfaceSamples;
 
 	renderSurface->glSurface = glSurface;
 	return baseSurface;
@@ -144,9 +157,7 @@ bool dsGLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 
 	const dsGLRenderSurface* glSurface = (const dsGLRenderSurface*)renderSurface;
 	if (!dsGLCommandBuffer_beginRenderSurface(commandBuffer, glSurface->glSurface))
-	{
 		return false;
-	}
 	return true;
 }
 
@@ -157,8 +168,8 @@ bool dsGLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuf
 	DS_ASSERT(commandBuffer);
 	DS_ASSERT(renderSurface);
 
-	return dsGLCommandBuffer_endRenderSurface(commandBuffer,
-		((const dsGLRenderSurface*)renderSurface)->glSurface);
+	return dsGLCommandBuffer_endRenderSurface(
+		commandBuffer, ((const dsGLRenderSurface*)renderSurface)->glSurface);
 }
 
 bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,

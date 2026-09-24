@@ -265,7 +265,8 @@ static bool setup(dsApplication* application, dsAllocator* allocator, float upda
 	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
 	testScene->window = dsWindow_create(application, allocator, "Test Scene", NULL, NULL, width,
-		height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
+		height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations,
+		dsRenderSurfaceColorType_SDR);
 	if (!testScene->window)
 	{
 		DS_LOG_ERROR_F("TestScene", "Couldn't create window: %s", dsErrorString(errno));

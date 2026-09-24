@@ -360,7 +360,8 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	uint32_t width = dsApplication_adjustWindowSize(application, NULL, 800);
 	uint32_t height = dsApplication_adjustWindowSize(application, NULL, 600);
 	testParticles->window = dsWindow_create(application, allocator, "Test Particles", NULL, NULL,
-		width, height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations);
+		width, height, dsWindowFlags_Resizable, dsRenderSurfaceUsage_ClientRotations,
+		dsRenderSurfaceColorType_SDR);
 	if (!testParticles->window)
 	{
 		DS_LOG_ERROR_F("TestParticles", "Couldn't create window: %s", dsErrorString(errno));

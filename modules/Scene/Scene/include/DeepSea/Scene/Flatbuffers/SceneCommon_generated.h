@@ -167,13 +167,15 @@ enum class TextureFormat : uint8_t {
   PVRTC1_RGBA_4BPP = 70,
   PVRTC2_RGBA_2BPP = 71,
   PVRTC2_RGBA_4BPP = 72,
-  SurfaceColor = 73,
-  SurfaceDepthStencil = 74,
+  SDRSurfaceColor = 73,
+  HDRSurfaceColor = 74,
+  PreferredSurfaceColor = 75,
+  SurfaceDepthStencil = 76,
   MIN = R4G4,
   MAX = SurfaceDepthStencil
 };
 
-inline const TextureFormat (&EnumValuesTextureFormat())[75] {
+inline const TextureFormat (&EnumValuesTextureFormat())[77] {
   static const TextureFormat values[] = {
     TextureFormat::R4G4,
     TextureFormat::R4G4B4A4,
@@ -248,14 +250,16 @@ inline const TextureFormat (&EnumValuesTextureFormat())[75] {
     TextureFormat::PVRTC1_RGBA_4BPP,
     TextureFormat::PVRTC2_RGBA_2BPP,
     TextureFormat::PVRTC2_RGBA_4BPP,
-    TextureFormat::SurfaceColor,
+    TextureFormat::SDRSurfaceColor,
+    TextureFormat::HDRSurfaceColor,
+    TextureFormat::PreferredSurfaceColor,
     TextureFormat::SurfaceDepthStencil
   };
   return values;
 }
 
 inline const char * const *EnumNamesTextureFormat() {
-  static const char * const names[76] = {
+  static const char * const names[78] = {
     "R4G4",
     "R4G4B4A4",
     "B4G4R4A4",
@@ -329,7 +333,9 @@ inline const char * const *EnumNamesTextureFormat() {
     "PVRTC1_RGBA_4BPP",
     "PVRTC2_RGBA_2BPP",
     "PVRTC2_RGBA_4BPP",
-    "SurfaceColor",
+    "SDRSurfaceColor",
+    "HDRSurfaceColor",
+    "PreferredSurfaceColor",
     "SurfaceDepthStencil",
     nullptr
   };

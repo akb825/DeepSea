@@ -80,7 +80,9 @@ typedef struct dsViewPrivate
 	uint32_t framebufferCount;
 	uint32_t lastSurfaceSamples;
 	uint32_t lastDefaultSamples;
-	dsGfxFormat lastSurfaceColorFormat;
+	dsGfxFormat lastSDRSurfaceColorFormat;
+	dsGfxFormat lastHDRSurfaceColorFormat;
+	dsGfxFormat lastPreferredSurfaceColorFormat;
 	dsGfxFormat lastSurfaceDepthStencilFormat;
 	bool sizeUpdated;
 	bool surfaceSet;
@@ -660,7 +662,9 @@ dsView* dsView_create(dsAllocator* allocator, const char* name, const dsScene* s
 	privateView->maxPipelineFramebuffers = scene->pipelineCount;
 	privateView->lastSurfaceSamples = renderer->surfaceSamples;
 	privateView->lastDefaultSamples = renderer->defaultSamples;
-	privateView->lastSurfaceColorFormat = renderer->surfaceColorFormat;
+	privateView->lastSDRSurfaceColorFormat = renderer->sdrSurfaceColorFormat;
+	privateView->lastHDRSurfaceColorFormat = renderer->hdrSurfaceColorFormat;
+	privateView->lastPreferredSurfaceColorFormat = renderer->preferredSurfaceColorFormat;
 	privateView->lastSurfaceDepthStencilFormat = renderer->surfaceDepthStencilFormat;
 	privateView->sizeUpdated = true;
 	privateView->surfaceSet = true;
@@ -1094,8 +1098,12 @@ bool dsView_update(dsView* view)
 	bool surfaceSet = privateView->surfaceSet;
 	bool surfaceSamplesChanged = privateView->lastSurfaceSamples != renderer->surfaceSamples;
 	bool defaultSamplesChanged = privateView->lastDefaultSamples != renderer->defaultSamples;
-	bool surfaceColorFormatChanged =
-		privateView->lastSurfaceColorFormat != renderer->surfaceColorFormat;
+	bool sdrSurfaceColorFormatChanged =
+		privateView->lastSDRSurfaceColorFormat != renderer->sdrSurfaceColorFormat;
+	bool hdrSurfaceColorFormatChanged =
+		privateView->lastHDRSurfaceColorFormat != renderer->hdrSurfaceColorFormat;
+	bool preferredSurfaceColorFormatChanged =
+		privateView->lastPreferredSurfaceColorFormat != renderer->preferredSurfaceColorFormat;
 	bool surfaceDepthStencilFormatChanged =
 		privateView->lastSurfaceDepthStencilFormat != renderer->surfaceDepthStencilFormat;
 	if (!sizeChanged && !surfaceSet && !surfaceSamplesChanged && !defaultSamplesChanged)
@@ -1114,7 +1122,10 @@ bool dsView_update(dsView* view)
 			((createInfo->width > 0 && createInfo->height > 0) || !sizeChanged) &&
 			(createInfo->samples != DS_SURFACE_ANTIALIAS_SAMPLES || !surfaceSamplesChanged) &&
 			(createInfo->samples != DS_DEFAULT_ANTIALIAS_SAMPLES || !defaultSamplesChanged) &&
-			(createInfo->format != dsGfxFormat_SurfaceColor || !surfaceColorFormatChanged) &&
+			(createInfo->format != dsGfxFormat_SDRSurfaceColor || !sdrSurfaceColorFormatChanged) &&
+			(createInfo->format != dsGfxFormat_HDRSurfaceColor || !hdrSurfaceColorFormatChanged) &&
+			(createInfo->format != dsGfxFormat_PreferredSurfaceColor ||
+				!preferredSurfaceColorFormatChanged) &&
 			(createInfo->format != dsGfxFormat_SurfaceDepthStencil ||
 				!surfaceDepthStencilFormatChanged))
 		{
@@ -1241,7 +1252,9 @@ bool dsView_update(dsView* view)
 	privateView->surfaceSet = false;
 	privateView->lastSurfaceSamples = renderer->surfaceSamples;
 	privateView->lastDefaultSamples = renderer->defaultSamples;
-	privateView->lastSurfaceColorFormat = renderer->surfaceColorFormat;
+	privateView->lastSDRSurfaceColorFormat = renderer->sdrSurfaceColorFormat;
+	privateView->lastHDRSurfaceColorFormat = renderer->hdrSurfaceColorFormat;
+	privateView->lastPreferredSurfaceColorFormat = renderer->preferredSurfaceColorFormat;
 	privateView->lastSurfaceDepthStencilFormat = renderer->surfaceDepthStencilFormat;
 	DS_PROFILE_FUNC_RETURN(true);
 }

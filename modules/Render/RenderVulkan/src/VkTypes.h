@@ -40,6 +40,17 @@
 #define DS_TEMP_BUFFER_CAPACITY 524288
 #define DS_MAX_TEMP_BUFFER_ALLOC 262144
 
+typedef enum dsUsedRendererDefaultMask
+{
+	dsUsedRendererDefaultMask_None,
+	dsUsedRendererDefaultMask_SDRSurfaceColor = 0x1,
+	dsUsedRendererDefaultMask_HDRSurfaceColor = 0x2,
+	dsUsedRendererDefaultMask_PreferredSurfaceColor = 0x4,
+	dsUsedRendererDefaultMask_SurfaceDepthStencil = 0x8,
+	dsUsedRendererDefaultMask_SurfaceSamples = 0x10,
+	dsUsedRendererDefaultMask_DefaultSamples = 0x20
+} dsUsedRendererDefaultMask;
+
 typedef struct dsVkInstance
 {
 	dsDynamicLib library;
@@ -666,11 +677,11 @@ typedef struct dsVkRenderPass
 	uint64_t lastCheckedFrame;
 	uint32_t surfaceSamples;
 	uint32_t defaultSamples;
-	dsGfxFormat surfaceColorFormat;
+	dsGfxFormat sdrSurfaceColorFormat;
+	dsGfxFormat hdrSurfaceColorFormat;
+	dsGfxFormat preferredSurfaceColorFormat;
 	dsGfxFormat surfaceDepthStencilFormat;
-	bool usesDefaultSamples;
-	bool usesSurfaceColorFormat;
-	bool usesSurfaceDepthStencilFormat;
+	dsUsedRendererDefaultMask usedDefaults;
 
 	dsVkRenderPassData* renderPassData;
 	dsSpinlock lock;
@@ -703,6 +714,7 @@ struct dsVkRenderSurfaceData
 	dsRenderSurfaceRotation rotation;
 
 	dsVSync vsync;
+	bool alpha;
 
 	uint32_t imageIndex;
 	uint32_t imageAcquireIndex;
@@ -1004,7 +1016,8 @@ typedef struct dsVkRenderer
 	dsVkDevice device;
 	dsVkPlatform platform;
 
-	bool colorSurfaceAlpha;
+	bool sdrColorSurfaceAlpha;
+	bool hdrColorSurfaceAlpha;
 
 	dsSpinlock resourceLock;
 	dsSpinlock deleteLock;

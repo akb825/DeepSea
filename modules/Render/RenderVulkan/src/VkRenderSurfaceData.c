@@ -116,13 +116,13 @@ static uint32_t getImageCount(VkPresentModeKHR presentMode, dsVSync vsync)
 	}
 }
 
-static bool createResolveImage(
-	dsVkRenderSurfaceData* surfaceData, VkFormat format, uint32_t width, uint32_t height)
+static bool createResolveImage(dsVkRenderSurfaceData* surfaceData, VkFormat format, uint32_t width,
+	uint32_t height, uint32_t samples)
 {
 	dsRenderer* renderer = surfaceData->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
-	if (renderer->surfaceSamples <= 1)
+	if (samples <= 1)
 		return true;
 
 	VkImageUsageFlags usageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -138,7 +138,7 @@ static bool createResolveImage(
 		{width, height, 1},
 		1,
 		1,
-		dsVkSampleCount(renderer->surfaceSamples),
+		dsVkSampleCount(samples),
 		VK_IMAGE_TILING_OPTIMAL,
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
@@ -190,17 +190,17 @@ static bool createResolveImage(
 	return DS_HANDLE_VK_RESULT(result, "Couldn't create image view");
 }
 
-static bool createDepthImage(
-	dsVkRenderSurfaceData* surfaceData, uint32_t width, uint32_t height, dsRenderSurfaceUsage usage)
+static bool createDepthImage(dsVkRenderSurfaceData* surfaceData, dsGfxFormat format, uint32_t width,
+	uint32_t height, uint32_t samples, dsRenderSurfaceUsage usage)
 {
 	dsRenderer* renderer = surfaceData->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	dsVkInstance* instance = &device->instance;
-	if (renderer->surfaceDepthStencilFormat == dsGfxFormat_Unknown)
+	if (format == dsGfxFormat_Unknown)
 		return true;
 
-	const dsVkFormatInfo* depthFormat = dsVkResourceManager_getFormat(renderer->resourceManager,
-		renderer->surfaceDepthStencilFormat);
+	const dsVkFormatInfo* depthFormat = dsVkResourceManager_getFormat(
+		renderer->resourceManager, format);
 	if (!depthFormat)
 	{
 		errno = EPERM;
@@ -225,7 +225,7 @@ static bool createDepthImage(
 		{width, height, 1},
 		1,
 		1,
-		dsVkSampleCount(renderer->surfaceSamples),
+		dsVkSampleCount(samples),
 		VK_IMAGE_TILING_OPTIMAL,
 		usageFlags,
 		VK_SHARING_MODE_EXCLUSIVE,
@@ -268,8 +268,7 @@ static bool createDepthImage(
 		depthFormat->vkFormat,
 		{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
 			VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
-		{dsVkImageAspectFlags(renderer->surfaceDepthStencilFormat), 0, VK_REMAINING_MIP_LEVELS, 0,
-			VK_REMAINING_ARRAY_LAYERS}
+		{dsVkImageAspectFlags(format), 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS}
 	};
 
 	result = DS_VK_CALL(device->vkCreateImageView)(device->device, &imageViewCreateInfo,
@@ -319,15 +318,16 @@ bool dsVkRenderSurfaceData_supportsFormat(
 
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
 	VkSurfaceKHR surface, dsVSync vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage,
-	const VkSurfaceCapabilitiesKHR* surfaceInfo)
+	dsGfxFormat colorFormat, bool alpha, dsRenderColorSpace colorSpace,
+	dsGfxFormat depthStencilFormat, uint32_t samples, const VkSurfaceCapabilitiesKHR* surfaceInfo)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
 
-	const dsVkFormatInfo* colorFormat = dsVkResourceManager_getFormat(
-		renderer->resourceManager, renderer->surfaceColorFormat);
-	if (!colorFormat)
+	const dsVkFormatInfo* colorFormatInfo = dsVkResourceManager_getFormat(
+		renderer->resourceManager, colorFormat);
+	if (!colorFormatInfo)
 	{
 		DS_LOG_ERROR(DS_RENDER_VULKAN_LOG_TAG, "Unknown format.");
 		errno = EPERM;
@@ -342,8 +342,9 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		return NULL;
 	}
 
-	VkColorSpaceKHR colorSpace = dsVkColorSpace(renderer->surfaceColorSpace);
-	if (!dsVkRenderSurfaceData_supportsFormat(renderer, surface, colorFormat->vkFormat, colorSpace))
+	VkColorSpaceKHR vkColorSpace = dsVkColorSpace(colorSpace);
+	if (!dsVkRenderSurfaceData_supportsFormat(
+			renderer, surface, colorFormatInfo->vkFormat, vkColorSpace))
 	{
 		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG,
 			"Renderer color format not supported by window surface.");
@@ -352,7 +353,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	}
 
 	VkCompositeAlphaFlagBitsKHR alphaFlags = 0;
-	if (vkRenderer->colorSurfaceAlpha &&
+	if (alpha &&
 		(surfaceInfo->supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR))
 	{
 		alphaFlags = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
@@ -413,8 +414,8 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		0,
 		surface,
 		imageCount,
-		colorFormat->vkFormat,
-		colorSpace,
+		colorFormatInfo->vkFormat,
+		vkColorSpace,
 		{preRotateWidth, preRotateHeight},
 		renderer->stereoscopic ? 2 : 1,
 		usageFlags,
@@ -535,7 +536,7 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 			0,
 			surfaceData->images[i],
 			renderer->stereoscopic ? VK_IMAGE_VIEW_TYPE_2D_ARRAY : VK_IMAGE_VIEW_TYPE_2D,
-			colorFormat->vkFormat,
+			colorFormatInfo->vkFormat,
 			{VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY,
 				VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY},
 			{VK_IMAGE_ASPECT_COLOR_BIT, 0, VK_REMAINING_MIP_LEVELS, 0, 1}
@@ -574,9 +575,12 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 	}
 
 	surfaceData->vsync = vsync;
+	surfaceData->alpha = alpha;
 
-	if (!createResolveImage(surfaceData, colorFormat->vkFormat, preRotateWidth, preRotateHeight) ||
-		!createDepthImage(surfaceData, preRotateWidth, preRotateHeight, usage))
+	if (!createResolveImage(
+			surfaceData, colorFormatInfo->vkFormat, preRotateWidth, preRotateHeight, samples) ||
+		!createDepthImage(
+			surfaceData, depthStencilFormat, preRotateWidth, preRotateHeight, samples, usage))
 	{
 		dsVkRenderSurfaceData_destroy(surfaceData);
 		return NULL;

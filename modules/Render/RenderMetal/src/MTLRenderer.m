@@ -567,23 +567,54 @@ bool dsMTLRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsMTLRenderer_setSurfaceFormat(
-	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+bool dsMTLRenderer_setSurfaceFormat(dsRenderer* renderer, const dsRenderSurfaceHint* sdrFormatHint,
+	const dsRenderSurfaceHint* hdrFormatHint, uint32_t samples, bool preferHDR)
 {
-	if (formatHint)
+	// Check HDR format first when set so all error checking can be done before modifying members.
+	dsGfxFormat hdrColorFormat = renderer->hdrSurfaceColorFormat;
+	dsRenderColorSpace hdrColorSpace = renderer->hdrSurfaceColorSpace;
+	if (hdrFormatHint)
 	{
-		dsGfxFormat colorFormat = dsMTLRenderer_surfaceColorFormat(formatHint);
-		dsRenderColorSpace colorSpace = formatHint->colorSpace;
-		dsGfxFormat depthFormat = dsMTLRenderer_surfaceDepthStencilFormat(renderer, formatHint);
+		hdrColorFormat = dsMTLRenderer_surfaceColorFormat(hdrFormatHint);
+		hdrColorSpace = hdrFormatHint->colorSpace;
+		if (!dsMTLRenderer_canUseRenderSurfaceFormat(
+				renderer, hdrColorFormat, hdrColorSpace, dsGfxFormat_Unknown, true))
+		{
+			return false;
+		}
+	}
+
+	if (sdrFormatHint)
+	{
+		dsGfxFormat colorFormat = dsMTLRenderer_surfaceColorFormat(sdrFormatHint);
+		dsRenderColorSpace colorSpace = sdrFormatHint->colorSpace;
+		dsGfxFormat depthFormat = dsMTLRenderer_surfaceDepthStencilFormat(renderer, sdrFormatHint);
 		if (!dsMTLRenderer_canUseRenderSurfaceFormat(
 				renderer, colorFormat, colorSpace, depthFormat, true))
 		{
 			return false;
 		}
 
-		renderer->surfaceColorFormat = colorFormat;
-		renderer->surfaceColorSpace = colorSpace;
+		renderer->sdrSurfaceColorFormat = colorFormat;
+		renderer->sdrSurfaceColorSpace = colorSpace;
 		renderer->surfaceDepthStencilFormat = depthFormat;
+	}
+
+	if (hdrFormatHint)
+	{
+		renderer->hdrSurfaceColorFormat = hdrColorFormat;
+		renderer->hdrSurfaceColorSpace = hdrColorSpace;
+	}
+
+	if (preferHDR)
+	{
+		renderer->preferredSurfaceColorFormat = hdrColorFormat;
+		renderer->preferredSurfaceColorSpace = hdrColorSpace;
+	}
+	else
+	{
+		renderer->preferredSurfaceColorFormat = renderer->sdrSurfaceColorFormat;
+		renderer->preferredSurfaceColorSpace = renderer->sdrSurfaceColorSpace;
 	}
 
 	renderer->surfaceSamples = samples;
@@ -945,6 +976,7 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 		baseRenderer->singleBuffer = false;
 		baseRenderer->stereoscopic = false;
 		baseRenderer->vsync = dsVSync_Disabled;
+		baseRenderer->dynamicRenderSurfaceFormats = true;
 		baseRenderer->hasGeometryShaders = false;
 		baseRenderer->hasTessellationShaders = hasTessellationShaders(device);
 
@@ -1053,16 +1085,21 @@ dsRenderer* dsMTLRenderer_create(dsAllocator* allocator, const dsRendererOptions
 			return NULL;
 		}
 
-		baseRenderer->surfaceColorFormat = colorFormat;
-		baseRenderer->surfaceColorSpace = colorSpace;
+		baseRenderer->sdrSurfaceColorFormat = baseRenderer->preferredSurfaceColorFormat =
+			colorFormat;
+		baseRenderer->sdrSurfaceColorSpace = baseRenderer->preferredSurfaceColorSpace = colorSpace;
+		baseRenderer->hdrSurfaceColorFormat = dsGfxFormat_Unknown;
+		baseRenderer->hdrSurfaceColorSpace = dsRenderColorSpace_NonLinearSRGB;
 		baseRenderer->surfaceDepthStencilFormat = depthFormat;
 
 		baseRenderer->destroyFunc = &dsMTLRenderer_destroy;
 
 		// Render surfaces
-		baseRenderer->renderSurfaceSupportsFormatFunc = &dsMTLRenderSurface_supportsFormat;
+		baseRenderer->renderSurfaceHandleSupportsFormatFunc =
+			&dsMTLRenderSurface_handleSupportsFormat;
 		baseRenderer->createRenderSurfaceFunc = &dsMTLRenderSurface_create;
 		baseRenderer->destroyRenderSurfaceFunc = &dsMTLRenderSurface_destroy;
+		baseRenderer->renderSurfaceSupportsFormatFunc = &dsMTLRenderSurface_supportsFormat;
 		baseRenderer->updateRenderSurfaceFunc = &dsMTLRenderSurface_update;
 		baseRenderer->beginRenderSurfaceFunc = &dsMTLRenderSurface_beginDraw;
 		baseRenderer->endRenderSurfaceFunc = &dsMTLRenderSurface_endDraw;

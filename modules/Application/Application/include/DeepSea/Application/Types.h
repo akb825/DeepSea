@@ -361,16 +361,17 @@ typedef enum dsWindowTextInputFlags
  */
 typedef enum dsWindowChangeFlags
 {
-	dsWindowChangeFlags_Hidden = 0x1,        ///< The hidden state was toggled.
-	dsWindowChangeFlags_Minimized = 0x2,     ///< The minimized state was toggled.
-	dsWindowChangeFlags_Maximized = 0x4,     ///< The maximized state was toggled.
-	dsWindowChangeFlags_Style = 0x8,         ///< The style of the window has changed.
-	dsWindowChangeFlags_Position = 0x10,     ///< The position of the window has changed.
-	dsWindowChangeFlags_Size = 0x20,         ///< The size of the window has changed.
-	dsWindowChangeFlags_SurfaceSize = 0x40,  ///< The size of the render surface has changed.
-	dsWindowChangeFlags_ContentScale = 0x80, ///< The content scale of the window has changed.
-	dsWindowChangeFlags_SafeArea = 0x100,    ///< The safe area within the window has changed.
-	dsWindowChangeFlags_Display = 0x200      ///< The display of the window has changed.
+	dsWindowChangeFlags_Hidden = 0x1,         ///< The hidden state was toggled.
+	dsWindowChangeFlags_Minimized = 0x2,      ///< The minimized state was toggled.
+	dsWindowChangeFlags_Maximized = 0x4,      ///< The maximized state was toggled.
+	dsWindowChangeFlags_Style = 0x8,          ///< The style of the window has changed.
+	dsWindowChangeFlags_Position = 0x10,      ///< The position of the window has changed.
+	dsWindowChangeFlags_Size = 0x20,          ///< The size of the window has changed.
+	dsWindowChangeFlags_SurfaceSize = 0x40,   ///< The size of the render surface has changed.
+	dsWindowChangeFlags_SurfaceFormat = 0x80, ///< The format of the render surface has changed.
+	dsWindowChangeFlags_ContentScale = 0x100, ///< The content scale of the window has changed.
+	dsWindowChangeFlags_SafeArea = 0x200,     ///< The safe area within the window has changed.
+	dsWindowChangeFlags_Display = 0x400       ///< The display of the window has changed.
 } dsWindowChangeFlags;
 
 /**
@@ -1016,11 +1017,13 @@ typedef void (*dsDestroyApplicationFunction)(dsApplication* application);
  * @param width The width of the window.
  * @param height The height of the window.
  * @param flags The flags to control creation of the window.
+ * @param colorType The color type used by the render surface.
  * @param renderSurfaceUsage Flags to determine how the render surface for the window will be used.
  */
 typedef dsWindow* (*dsCreateWindowFunction)(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsWindowInitPosition* position,
-	uint32_t width, uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage);
+	uint32_t width, uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage,
+	dsRenderSurfaceColorType colorType);
 
 /**
  * @brief Function for destroying a window.
@@ -1037,6 +1040,37 @@ typedef bool (*dsDestroyWindowFunction)(dsApplication* application, dsWindow* wi
  * @return False if the surface couldn't be created.
  */
 typedef bool (*dsCreateWindowSurfaceFunction)(dsApplication* application, dsWindow* window);
+
+/**
+ * @brief Function to check if a window supports a format.
+ *
+ * This should only be called when either the window doesn't have a render surface yet or the
+ * surface cannot be dynamically changed, meaning that the window capabilities may not match the
+ * current render surface's capabilities.
+ *
+ * @param application The application.
+ * @param window The window to check.
+ * @param formatHint The hint for the render surface format, either currently in use or may be set
+ *     later.
+ * @param samples The number of anit-alias samples used for the render surface.
+ * @return Whether the window supports the format.
+ */
+typedef bool (*dsWindowSupportsFormatFunction)(const dsApplication* application,
+	const dsWindow* window, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+
+/**
+ * @brief Function to set the color type of a window.
+ *
+ * This should update the render surface in-place if possible, or re-create the render surface if
+ * not.
+ *
+ * @param application The application.
+ * @param window The window to set the color type on.
+ * @param colorType The new color type.
+ * @return False if the color type couldn't be set.
+ */
+typedef bool (*dsSetWindowColorTypeFunction)(
+	dsApplication* application, dsWindow* window, dsRenderSurfaceColorType colorType);
 
 /**
  * @brief Function for getting the window with focus.
@@ -1752,6 +1786,16 @@ typedef struct dsApplication
 	dsCreateWindowSurfaceFunction createWindowSurfaceFunc;
 
 	/**
+	 * @brief Function to check whether a window supports a format.
+	 */
+	dsWindowSupportsFormatFunction windowSupportsFormatFunc;
+
+	/**
+	 * @brief Function to set the color type of a window.
+	 */
+	dsSetWindowColorTypeFunction setWindowColorTypeFunc;
+
+	/**
 	 * @brief Function to get the window with focus.
 	 */
 	dsGetFocusWindowFunction getFocusWindowFunc;
@@ -1992,6 +2036,11 @@ typedef struct dsWindow
 	 * @brief The style of the window.
 	 */
 	dsWindowStyle style;
+
+	/**
+	 * @brief The color type of the render surface.
+	 */
+	dsRenderSurfaceColorType colorType;
 
 	/**
 	 * @brief The display mode of the window when full-screen.

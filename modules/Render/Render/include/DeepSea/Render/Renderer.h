@@ -112,8 +112,8 @@ DS_RENDER_EXPORT bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t
  * @param versionString The shader version string.
  * @return False if the shader version string doesn't match what's valid for the current renderer.
  */
-DS_RENDER_EXPORT bool dsRenderer_shaderVersionFromString(dsShaderVersion* outVersion,
-	const dsRenderer* renderer, const char* versionString);
+DS_RENDER_EXPORT bool dsRenderer_shaderVersionFromString(
+	dsShaderVersion* outVersion, const dsRenderer* renderer, const char* versionString);
 
 /**
  * @brief Makes an orthographic projection matrix.
@@ -189,8 +189,8 @@ DS_RENDER_EXPORT bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRe
  * @param matrix The projection matrix to extract the frustum planes from.
  * @return False if the parameters are invalid.
  */
-DS_RENDER_EXPORT bool dsRenderer_frustumFromMatrix(dsFrustum3f* result, const dsRenderer* renderer,
-	const dsMatrix44f* matrix);
+DS_RENDER_EXPORT bool dsRenderer_frustumFromMatrix(
+	dsFrustum3f* result, const dsRenderer* renderer, const dsMatrix44f* matrix);
 
 /**
  * @brief Begins a frame.
@@ -222,18 +222,29 @@ DS_RENDER_EXPORT bool dsRenderer_endFrame(dsRenderer* renderer);
  *
  * @remark This shouldn't be changed in the middle of drawing. Ideally it should be set between
  *     frames.
+ * @remark The HDR format must be supported by the renderer, but it's possible that surfaces may not
+ *     support the format when it is set. For example, HDR might be toggled on a display during
+ *     runtime where HDR might be unavailable at startup but available at a later time, or
+ *     vice-versa. It's also possible for one surface to support it but not another, such as when
+ *     moving a window between an HDR capable display and anothe display without HDR support.
  * @remark errno will be set on failure.
  * @param renderer The renderer.
- * @param formatHint The hint for the render surface format to use. The color format will be used
- *     for dsGfxFormat_SurfaceColor and depth/stencil format will be used for
- *     dsGfxFormat_SurfaceDepthStencil. If NULL is passed, the current surface color and
+ * @param sdrFormatHint The hint for the SDR render surface format to use. The color format will be
+ *     used for dsGfxFormat_SDRSurfaceColor and depth/stencil format will be used for
+ *     dsGfxFormat_SurfaceDepthStencil. If NULL is passed, the current SDR surface color and
  *     depth/stencil formats will remain unchanged.
+ * @param hdrFormatHint The hint for the HDR render surface format to use. The color format will be
+ *     used for dsGfxFormat_HDRSurfaceColor, while the depth/stencil will be ignored. If NULL is
+ *     passed, the current SDR surface color format will remain unchanged.
  * @param samples The number of anti-alias samples. This value will be used when the
  *     DS_SURFACE_ANTIALIAS_SAMPLES constant is used.
- * @return False if the number of samples couldn't be set.
+ * @param preferHDR Whether to prefer the HDR format for any render surface that supports it and
+ *     doesn't explicitly choose to exclusively use SDR or HDR.
+ * @return False if the surface format couldn't be set.
  */
 DS_RENDER_EXPORT bool dsRenderer_setSurfaceFormat(
-	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+	dsRenderer* renderer, const dsRenderSurfaceHint* sdrFormatHint,
+	const dsRenderSurfaceHint* hdrFormatHint, uint32_t samples, bool preferHDR);
 
 /**
  * @brief Sets the default number of anti-alias samples for offscreens and renderbuffers.
@@ -271,6 +282,20 @@ DS_RENDER_EXPORT bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_
  * @return False if the number of samples couldn't be set.
  */
 DS_RENDER_EXPORT bool dsRenderer_setSamples(dsRenderer* renderer, uint32_t samples);
+
+/**
+ * @brief Sets whether to prefer HDR render surfaces.
+ *
+ * This is a convenience function to call dsRenderer_setSurfaceFormat() with the existing formats
+ * while only setting the state of preferHDR.
+ *
+ * @remark errno will be set on failure.
+ * @param renderer The renderer
+ * @param preferHDR Whether to prefer the HDR format for any render surface that supports it and
+ *     doesn't explicitly choose to exclusively use SDR or HDR.
+ * @return False if the preference of HDR surfaces couldn't be set.
+ */
+DS_RENDER_EXPORT bool dsRenderer_setPreferHDRSurfaces(dsRenderer* renderer, bool preferHDR);
 
 /**
  * @brief Sets how to wait for vsync.

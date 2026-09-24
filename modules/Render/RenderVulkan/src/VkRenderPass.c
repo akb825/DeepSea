@@ -90,11 +90,11 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 	renderPass->scratchAllocator = renderer->allocator;
 	renderPass->surfaceSamples = renderer->surfaceSamples;
 	renderPass->defaultSamples = renderer->defaultSamples;
-	renderPass->surfaceColorFormat = renderer->surfaceColorFormat;
+	renderPass->sdrSurfaceColorFormat = renderer->sdrSurfaceColorFormat;
+	renderPass->hdrSurfaceColorFormat = renderer->hdrSurfaceColorFormat;
+	renderPass->preferredSurfaceColorFormat = renderer->preferredSurfaceColorFormat;
 	renderPass->surfaceDepthStencilFormat = renderer->surfaceDepthStencilFormat;
-	renderPass->usesDefaultSamples = false;
-	renderPass->usesSurfaceColorFormat = false;
-	renderPass->usesSurfaceDepthStencilFormat = false;
+	renderPass->usedDefaults = dsUsedRendererDefaultMask_None;
 	renderPass->renderPassData = NULL;
 	DS_VERIFY(dsSpinlock_initialize(&renderPass->lock));
 
@@ -113,17 +113,28 @@ dsRenderPass* dsVkRenderPass_create(dsRenderer* renderer, dsAllocator* allocator
 		for (uint32_t i = 0; i < attachmentCount; ++i)
 		{
 			const dsRenderPassAttachmentInfo* attachment = attachments + i;
-			if (attachment->samples == DS_SURFACE_ANTIALIAS_SAMPLES ||
-				attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+			if (attachment->samples == DS_SURFACE_ANTIALIAS_SAMPLES)
+				renderPass->usedDefaults |= dsUsedRendererDefaultMask_SurfaceSamples;
+			else if (attachment->samples == DS_DEFAULT_ANTIALIAS_SAMPLES)
+				renderPass->usedDefaults |= dsUsedRendererDefaultMask_DefaultSamples;
+
+			switch (attachment->format)
 			{
-				renderPass->usesDefaultSamples = true;
+				case dsGfxFormat_SDRSurfaceColor:
+					renderPass->usedDefaults |= dsUsedRendererDefaultMask_SDRSurfaceColor;
+					break;
+				case dsGfxFormat_HDRSurfaceColor:
+					renderPass->usedDefaults |= dsUsedRendererDefaultMask_HDRSurfaceColor;
+					break;
+				case dsGfxFormat_PreferredSurfaceColor:
+					renderPass->usedDefaults |= dsUsedRendererDefaultMask_PreferredSurfaceColor;
+					break;
+				case dsGfxFormat_SurfaceDepthStencil:
+					renderPass->usedDefaults |= dsUsedRendererDefaultMask_SurfaceDepthStencil;
+					break;
+				default:
+					break;
 			}
-
-			if (attachment->format == dsGfxFormat_SurfaceColor)
-				renderPass->usesSurfaceColorFormat = true;
-
-			if (attachment->format == dsGfxFormat_SurfaceDepthStencil)
-				renderPass->usesSurfaceDepthStencilFormat = true;
 		}
 	}
 	else
@@ -270,10 +281,12 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 	dsRenderer* renderer = renderPass->renderer;
 	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
 	uint64_t frame = renderer->frameNumber;
+	dsGfxFormat sdrSurfaceColorFormat = renderer->sdrSurfaceColorFormat;
+	dsGfxFormat hdrSurfaceColorFormat = renderer->hdrSurfaceColorFormat;
+	dsGfxFormat preferredSurfaceColorFormat = renderer->preferredSurfaceColorFormat;
+	dsGfxFormat surfaceDepthFormat = renderer->surfaceDepthStencilFormat;
 	uint32_t surfaceSamples = renderer->surfaceSamples;
 	uint32_t defaultSamples = renderer->defaultSamples;
-	dsGfxFormat surfaceColorFormat = renderer->surfaceColorFormat;
-	dsGfxFormat surfaceDepthFormat = renderer->surfaceDepthStencilFormat;
 
 	DS_VERIFY(dsSpinlock_lock(&vkRenderPass->lock));
 	if (vkRenderPass->lastCheckedFrame == frame)
@@ -282,12 +295,16 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 		return vkRenderPass->renderPassData;
 	}
 
-	if ((vkRenderPass->usesDefaultSamples && (surfaceSamples != vkRenderPass->surfaceSamples ||
-			defaultSamples != vkRenderPass->defaultSamples)) ||
-		(vkRenderPass->usesSurfaceColorFormat &&
-			surfaceColorFormat != vkRenderPass->surfaceColorFormat) ||
-		(vkRenderPass->usesSurfaceDepthStencilFormat &&
-			surfaceDepthFormat != vkRenderPass->surfaceDepthStencilFormat))
+	if (((vkRenderPass->usedDefaults & dsUsedRendererDefaultMask_SDRSurfaceColor) &&
+			vkRenderPass->sdrSurfaceColorFormat != sdrSurfaceColorFormat) ||
+		((vkRenderPass->usedDefaults & dsUsedRendererDefaultMask_HDRSurfaceColor) &&
+			vkRenderPass->hdrSurfaceColorFormat != hdrSurfaceColorFormat) ||
+		((vkRenderPass->usedDefaults & dsUsedRendererDefaultMask_PreferredSurfaceColor) &&
+			vkRenderPass->preferredSurfaceColorFormat != preferredSurfaceColorFormat) ||
+		((vkRenderPass->usedDefaults & dsUsedRendererDefaultMask_SurfaceSamples) &&
+			vkRenderPass->surfaceSamples != surfaceSamples) ||
+		((vkRenderPass->usedDefaults & dsUsedRendererDefaultMask_DefaultSamples) &&
+			vkRenderPass->defaultSamples != defaultSamples))
 	{
 		dsVkRenderPassData* renderPassData = dsVkRenderPassData_create(
 			vkRenderPass->scratchAllocator, device, renderPass);
@@ -297,10 +314,12 @@ dsVkRenderPassData* dsVkRenderPass_getData(const dsRenderPass* renderPass)
 			vkRenderPass->renderPassData = renderPassData;
 		}
 
+		vkRenderPass->sdrSurfaceColorFormat = sdrSurfaceColorFormat;
+		vkRenderPass->hdrSurfaceColorFormat = hdrSurfaceColorFormat;
+		vkRenderPass->preferredSurfaceColorFormat = preferredSurfaceColorFormat;
+		vkRenderPass->surfaceDepthStencilFormat = surfaceDepthFormat;
 		vkRenderPass->surfaceSamples = surfaceSamples;
 		vkRenderPass->defaultSamples = defaultSamples;
-		vkRenderPass->surfaceColorFormat = surfaceColorFormat;
-		vkRenderPass->surfaceDepthStencilFormat = surfaceDepthFormat;
 	}
 
 	vkRenderPass->lastCheckedFrame = frame;

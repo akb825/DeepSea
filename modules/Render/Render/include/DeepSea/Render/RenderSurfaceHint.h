@@ -60,6 +60,17 @@ DS_RENDER_EXPORT bool dsRenderSurfaceHint_fromFormats(dsRenderSurfaceHint* hint,
 	bool explicitFormats);
 
 /**
+ * @brief Initializes a render surface hint with a color type based on the currently set surface
+ *     formats.
+ * @remark errno will be set on failure.
+ * @param[out] hint The render surface hint to initialize.
+ * @param renderer The renderer.
+ * @param colorType The color type.
+ */
+DS_RENDER_EXPORT bool dsRenderSurfaceHint_fromColorType(
+	dsRenderSurfaceHint* hint, const dsRenderer* renderer, dsRenderSurfaceColorType colorType);
+
+/**
  * @brief Checks whether the render surface hint can produce a valid color format.
  * @param hint The render surface hint.
  * @return Whether the hint is valid.

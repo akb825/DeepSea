@@ -11,7 +11,7 @@
 			[
 				{
 					"usage": ["Clear", "KeepAfter"],
-					"format": "SurfaceColor",
+					"format": "SDRSurfaceColor",
 					"decoration": "Unset",
 					"clearValue": {"floatValues": [1.0, 1.0, 1.0, 1.0]},
 					"samples": "Surface"

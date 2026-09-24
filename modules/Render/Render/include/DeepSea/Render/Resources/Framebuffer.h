@@ -39,12 +39,10 @@ extern "C"
 /**
  * @brief Gets the format for a surface.
  * @remark errno will be set on failure.
- * @param renderer The renderer.
  * @param surface The framebuffer surface.
  * @return The surface format, or dsGfxFormat_Unknown if the parameters are invalid.
  */
-DS_RENDER_EXPORT dsGfxFormat dsFramebuffer_getSurfaceFormat(
-	const dsRenderer* renderer, const dsFramebufferSurface* surface);
+DS_RENDER_EXPORT dsGfxFormat dsFramebuffer_getSurfaceFormat(const dsFramebufferSurface* surface);
 
 /**
  * @brief Creates a framebuffer.

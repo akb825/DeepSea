@@ -277,7 +277,7 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 			colorDescriptor, surface, attachmentInfo, colorAttachment->resolve, false);
 		if (attachmentInfo->loadAction == MTLLoadActionClear)
 		{
-			dsGfxFormat format = dsFramebuffer_getSurfaceFormat(commandBuffer->renderer, surface);
+			dsGfxFormat format = dsFramebuffer_getSurfaceFormat(surface);
 			DS_ASSERT(colorAttachment->attachmentIndex < mtlCommandBuffer->clearValueCount);
 			colorDescriptor.clearColor = dsGetMTLClearColor(format,
 				&mtlCommandBuffer->clearValues[colorAttachment->attachmentIndex].colorValue);
@@ -289,7 +289,7 @@ static MTLRenderPassDescriptor* createRenderPassDescriptor(const dsRenderPass* r
 	{
 		const dsFramebufferSurface* surface = framebuffer->surfaces +
 			depthStencilAttachment->attachmentIndex;
-		dsGfxFormat format = dsFramebuffer_getSurfaceFormat(commandBuffer->renderer, surface);
+		dsGfxFormat format = dsFramebuffer_getSurfaceFormat(surface);
 		if (format == dsGfxFormat_D16 || format == dsGfxFormat_X8D24 ||
 			format == dsGfxFormat_D32_Float || format == dsGfxFormat_D16S8 ||
 			format == dsGfxFormat_D24S8 || format == dsGfxFormat_D32S8_Float)

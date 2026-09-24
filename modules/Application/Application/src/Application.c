@@ -348,13 +348,23 @@ bool dsApplication_quit(dsApplication* application, int exitCode)
 	return true;
 }
 
+int dsApplication_canSupportSurfaceFormat(
+	const dsApplication* application, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	if (!application || !formatHint)
+		return false;
+
+	return dsRenderSurface_handleSupportsFormat(
+		application->renderer, NULL, NULL, dsRenderSurfaceType_Window, formatHint, samples);
+}
+
 bool dsApplication_supportsSurfaceFormat(const dsApplication* application,
 	const dsDisplayInfo* display, const dsRenderSurfaceHint* formatHint, uint32_t samples)
 {
 	if (!application || !formatHint)
 		return false;
 
-	int surfacelessResult = dsRenderSurface_supportsFormat(
+	int surfacelessResult = dsRenderSurface_handleSupportsFormat(
 		application->renderer, NULL, NULL, dsRenderSurfaceType_Window, formatHint, samples);
 	if (surfacelessResult >= 0)
 		return (bool)surfacelessResult;

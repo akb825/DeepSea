@@ -116,16 +116,27 @@ TEST_F(RendererTest, BeginEndFrame)
 
 TEST_F(RendererTest, SetSurfaceFormat)
 {
-	EXPECT_FALSE(dsRenderer_setSurfaceFormat(nullptr, nullptr, 1));
-	EXPECT_FALSE(dsRenderer_setSurfaceFormat(renderer, nullptr, renderer->maxSurfaceSamples + 1));
-	EXPECT_TRUE(dsRenderer_setSurfaceFormat(renderer, nullptr, renderer->maxSurfaceSamples));
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(nullptr, nullptr, nullptr, 1, false));
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(
+		renderer, nullptr, nullptr, renderer->maxSurfaceSamples + 1, false));
+	EXPECT_TRUE(dsRenderer_setSurfaceFormat(
+		renderer, nullptr, nullptr, renderer->maxSurfaceSamples, false));
 
 	dsRenderSurfaceHint hint;
-	ASSERT_TRUE(dsRenderSurfaceHint_fromFormats(&hint, renderer->surfaceColorFormat,
-		renderer->surfaceDepthStencilFormat, renderer->surfaceColorSpace, false));
-	EXPECT_TRUE(dsRenderer_setSurfaceFormat(renderer, &hint, 1));
+	ASSERT_TRUE(dsRenderSurfaceHint_fromFormats(&hint, renderer->sdrSurfaceColorFormat,
+		renderer->surfaceDepthStencilFormat, renderer->sdrSurfaceColorSpace, false));
+	EXPECT_TRUE(dsRenderer_setSurfaceFormat(renderer, &hint, nullptr, 1, false));
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(renderer, nullptr, &hint, 1, false));
 	hint.redBits = 100;
-	EXPECT_FALSE(dsRenderer_setSurfaceFormat(renderer, &hint, 1));
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(renderer, &hint, nullptr, 1, false));
+
+	ASSERT_TRUE(dsRenderSurfaceHint_fromFormats(&hint,
+		dsGfxFormat_decorate(dsGfxFormat_A2R10G10B10, dsGfxFormat_UNorm),
+		renderer->surfaceDepthStencilFormat, dsRenderColorSpace_Rec2100PQ, false));
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(renderer, &hint, nullptr, 1, false));
+	EXPECT_TRUE(dsRenderer_setSurfaceFormat(renderer, nullptr, &hint, 1, false));
+	hint.redBits = 100;
+	EXPECT_FALSE(dsRenderer_setSurfaceFormat(renderer, nullptr, &hint, 1, false));
 }
 
 TEST_F(RendererTest, SetDefaultSamples)

@@ -258,7 +258,7 @@ typedef enum dsRenderSurfaceUsage
 } dsRenderSurfaceUsage;
 
 /**
- * @brief The rotation to apply to the render surface.
+ * @brief Enum for the rotation to apply to the render surface.
  *
  * The client must apply this rotation to any geometry drawn to the render surface to display in the
  * correct oreintation. All rotations are clockwise.
@@ -282,6 +282,20 @@ typedef enum dsRenderSurfaceRotation
 	dsRenderSurfaceRotation_180, ///< 180 degrees of rotation.
 	dsRenderSurfaceRotation_270  ///< 270 degrees of rotation.
 } dsRenderSurfaceRotation;
+
+/**
+ * @brief Enum for which which color format and color space to use for a render surface.
+ */
+typedef enum dsRenderSurfaceColorType
+{
+	dsRenderSurfaceColorType_SDR,      ///< Use the SDR color format and color space.
+	dsRenderSurfaceColorType_HDR,      ///< Use the HDR color format and color space.
+	/**
+	 * Use the preferred color format and color space, following the global preference set on the
+	 * renderer.
+	 */
+	dsRenderSurfaceColorType_Preferred
+} dsRenderSurfaceColorType;
 
 /**
  * @brief Enum for how to use a command buffer.
@@ -574,6 +588,9 @@ typedef struct dsRendererOptions
 
 	/**
 	 * @brief The hint for the render surface format.
+	 *
+	 * This will be used for the SDR format. If an HDR format is desired, it must be set after the
+	 * renderer has been created.
 	 */
 	dsRenderSurfaceHint renderSurfaceHint;
 
@@ -750,6 +767,33 @@ typedef struct dsRenderSurface
 	 * @brief The rotation to apply to the image.
 	 */
 	dsRenderSurfaceRotation rotation;
+
+	/**
+	 * @brief The color type that the render surface uses.
+	 */
+	dsRenderSurfaceColorType colorType;
+
+	/**
+	 * @brief The color format for the surface.
+	 *
+	 * This is expected to always be valid.
+	 */
+	dsGfxFormat colorFormat;
+
+	/**
+	 * @brief The color space used to render to the surface.
+	 */
+	dsRenderColorSpace colorSpace;
+
+	/**
+	 * @brief The depth stencil format for the surface.
+	 */
+	dsGfxFormat depthStencilFormat;
+
+	/**
+	 * @brief The number of anti-alias samples for the surface.
+	 */
+	uint32_t samples;
 } dsRenderSurface;
 
 /**
@@ -1514,7 +1558,7 @@ typedef bool (*dsDestroyRendererFunction)(dsRenderer* renderer);
 typedef void (*dsSetExtraRendererDebuggingFunction)(dsRenderer* renderer, bool enable);
 
 /**
- * @brief Function to check if a render surface will support a given format.
+ * @brief Function to check if a handle used to create a render surface will support a given format.
  * @param renderer The renderer the render surface would be created with.
  * @param displayHandle The handle to the display the surface is associated with.
  * @param osHandle The OS handle, such as window handle.
@@ -1525,7 +1569,7 @@ typedef void (*dsSetExtraRendererDebuggingFunction)(dsRenderer* renderer, bool e
  * @return 1 if the surface is supported, 0 if the surface is unsupported, or -1 if it can't be
  *     determined.
  */
-typedef int (*dsRenderSurfaceSupportsFormatFunction)(const dsRenderer* renderer,
+typedef int (*dsRenderSurfaceHandleSupportsFormatFunction)(const dsRenderer* renderer,
 	void* displayHandle, void* osHandle, dsRenderSurfaceType type,
 	const dsRenderSurfaceHint* formatHint, uint32_t samples);
 
@@ -1539,14 +1583,15 @@ typedef int (*dsRenderSurfaceSupportsFormatFunction)(const dsRenderer* renderer,
  * @param osHandle The OS handle, such as window handle.
  * @param type The type of the render surface.
  * @param usage Flags to determine how the render surface will be used.
+ * @param colorType The color type used by the render surface.
  * @param widthHint Hint for the width of the surface.
  * @param heightHint Hint for the height of the surface.
  * @return The created render surface, or NULL if it couldn't be created.
  */
 typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
 	dsAllocator* allocator, const char* name, void* displayHandle, void* osHandle,
-	dsRenderSurfaceType type, dsRenderSurfaceUsage usage, unsigned int widthHint,
-	unsigned int heightHint);
+	dsRenderSurfaceType type, dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType,
+	unsigned int widthHint, unsigned int heightHint);
 
 /**
  * @brief Function for destroying a render surface.
@@ -1556,6 +1601,18 @@ typedef dsRenderSurface* (*dsCreateRenderSurfaceFunction)(dsRenderer* renderer,
  */
 typedef bool (*dsDestroyRenderSurfaceFunction)(
 	dsRenderer* renderer, dsRenderSurface* renderSurface);
+
+/**
+ * @brief Function to check if a render surface supports a format.
+ * @param renderer The renderer the render surface is used with.
+ * @param renderSurface The render surface to check.
+ * @param formatHint The hint for the render surface format, either currently in use or may be set
+ *     later.
+ * @param samples The number of anit-alias samples used for the render surface.
+ * @return Whether the render surface supports the format.
+ */
+typedef bool (*dsRenderSurfaceSupportsFormatFunction)(const dsRenderer* renderer,
+	const dsRenderSurface* renderSurface, const dsRenderSurfaceHint* formatHint, uint32_t samples);
 
 /**
  * @brief Function for updating a render surface.
@@ -1575,8 +1632,8 @@ typedef bool (*dsUpdateRenderSurfaceFunction)(dsRenderer* renderer, dsRenderSurf
  * @param renderSurface The render surface to start drawing to.
  * @return False if this couldn't start drawing to the render surface.
  */
-typedef bool (*dsBeginRenderSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface);
+typedef bool (*dsBeginRenderSurfaceFunction)(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface);
 
 /**
  * @brief Function to end drawing to a render surface.
@@ -1585,8 +1642,8 @@ typedef bool (*dsBeginRenderSurfaceFunction)(dsRenderer* renderer, dsCommandBuff
  * @param renderSurface The render surface to end drawing to.
  * @return False if this couldn't end drawing to the render surface.
  */
-typedef bool (*dsEndRenderSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface);
+typedef bool (*dsEndRenderSurfaceFunction)(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface);
 
 /**
  * @brief Function for swapping buffers for a render surface.
@@ -1595,8 +1652,8 @@ typedef bool (*dsEndRenderSurfaceFunction)(dsRenderer* renderer, dsCommandBuffer
  * @param count The number of render surfaces to swap.
  * @return False if the buffers couldn't be swapped.
  */
-typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
-	dsRenderSurface** renderSurfaces, uint32_t count);
+typedef bool (*dsSwapRenderSurfaceBuffersFunction)(
+	dsRenderer* renderer, dsRenderSurface** renderSurfaces, uint32_t count);
 
 /**
  * @brief Function for creating a command buffer pool.
@@ -1605,8 +1662,8 @@ typedef bool (*dsSwapRenderSurfaceBuffersFunction)(dsRenderer* renderer,
  * @param usage The usage flags. Set to 0 if none of the usage options are needed.
  * @return The command buffer pool.
  */
-typedef dsCommandBufferPool* (*dsCreateCommandBufferPoolFunction)(dsRenderer* renderer,
-	dsAllocator* allocator, dsCommandBufferUsage usage);
+typedef dsCommandBufferPool* (*dsCreateCommandBufferPoolFunction)(
+	dsRenderer* renderer, dsAllocator* allocator, dsCommandBufferUsage usage);
 
 /**
  * @brief Function for destroying a command buffer pool.
@@ -1623,8 +1680,8 @@ typedef bool (*dsDestroyCommandBufferPoolFunction)(dsRenderer* renderer, dsComma
  * @param count The number of command buffers to create
  * @return False if the command buffers couldn't be created..
  */
-typedef bool (*dsCommandBufferPoolCreateCommandBuffersFunction)(dsRenderer* renderer,
-	dsCommandBufferPool* pool, uint32_t count);
+typedef bool (*dsCommandBufferPoolCreateCommandBuffersFunction)(
+	dsRenderer* renderer, dsCommandBufferPool* pool, uint32_t count);
 
 /**
  * @brief Function for resetting a command buffer pool, preparing the command buffers to be built up
@@ -1676,8 +1733,8 @@ typedef bool (*dsEndCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer
  * @param submitBuffer The buffer to submit.
  * @return False if the command buffer couldn't be submitted.
  */
-typedef bool (*dsSubmitCommandBufferFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	dsCommandBuffer* submitBuffer);
+typedef bool (*dsSubmitCommandBufferFunction)(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, dsCommandBuffer* submitBuffer);
 
 /**
  * @brief Function for creating a render pass.
@@ -1751,8 +1808,8 @@ typedef bool (*dsNextRenderSubpassFunction)(dsRenderer* renderer, dsCommandBuffe
  * @param renderPass The render pass to end.
  * @return False if the render pass couldn't be ended.
  */
-typedef bool (*dsEndRenderPassFunction)(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderPass* renderPass);
+typedef bool (*dsEndRenderPassFunction)(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderPass* renderPass);
 
 /**
  * @brief Function for beginning a frame.
@@ -1772,17 +1829,23 @@ typedef bool (*dsEndFrameFunction)(dsRenderer* renderer);
  * @brief Function for setting the render surface format and number of anti-alias samples.
  *
  * This should set the default values on the renderer on success. The implementation is responsible
- * for making any necessary changse to the render passes when the attachment info is set to use a
+ * for making any necessary changes to the render passes when the attachment info is set to use a
  * render surface color or depth/stencil format or number of samples. The caller is responsible for
  * re-creating any render surfaces, offscreens, renderbuffers, and framebuffers.
  *
  * @param renderer The renderer.
- * @param formatHint The format hint or NULL to leave unchanged.
+ * @param sdrFormatHint The hint for the SDR render surface format to use or NULL to leave
+ *     unchanged.
+ * @param hdrFormatHint The hint for the HDR render surface format to use or NULL to leave
+ *     unchanged.
  * @param samples The number of anti-alias samples.
+ * @param preferHDR Whether to prefer the HDR format for any render surface that supports it and
+ *     doesn't explicitly choose to exclusively use SDR or HDR.
  * @return False if the surface format or number of samples couldn't be set.
  */
 typedef bool (*dsSetRenderSurfaceFormatFunction)(
-	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+	dsRenderer* renderer, const dsRenderSurfaceHint* sdrFormatHint,
+	const dsRenderSurfaceHint* hdrFormatHint, uint32_t samples, bool preferHDR);
 
 /**
  * @brief Function for setting the number of anti-alias samples.
@@ -2161,19 +2224,52 @@ typedef struct dsRenderer
 	float maxAnisotropy;
 
 	/**
-	 * @brief The format for color render surfaces.
+	 * @brief The format for SDR color render surfaces.
+	 *
+	 * This should be guaranteed to be a valid format.
 	 */
-	dsGfxFormat surfaceColorFormat;
+	dsGfxFormat sdrSurfaceColorFormat;
+
+	/**
+	 * @brief The color space for SDR color render surfaces.
+	 *
+	 * This should exclusively be some form of non-linear sRGB.
+	 */
+	dsRenderColorSpace sdrSurfaceColorSpace;
+
+	/**
+	 * @brief The format for HDR color render surfaces.
+	 *
+	 * This may be dsGfxFormat_Unknown if no HDR surface color format is set.
+	 */
+	dsGfxFormat hdrSurfaceColorFormat;
 
 	/**
 	 * @brief The color space for color render surfaces.
+	 *
+	 * This is only valid if hdrSurfaceColorFormat is valid, and should exclusively be a color space
+	 * that allows for ranges outside of the standard sRGB range.
 	 */
-	dsRenderColorSpace surfaceColorSpace;
+	dsRenderColorSpace hdrSurfaceColorSpace;
+
+	/**
+	 * @brief The format for preferred color render surfaces.
+	 *
+	 * This will match either sdrSurfaceColorFormat or hdrSurfaceColorFormat.
+	 */
+	dsGfxFormat preferredSurfaceColorFormat;
+
+	/**
+	 * @brief The color space for preferred color render surfaces.
+	 *
+	 * This will match either sdrSurfaceColorSpace or hdrSurfaceColorSpace.
+	 */
+	dsRenderColorSpace preferredSurfaceColorSpace;
 
 	/**
 	 * @brief The format for depth/stencil render surfaces.
 	 *
-	 * This can be set to dsGfxFormat_Unknown if a depth buffer isn't used.
+	 * This can be set to dsGfxFormat_Unknown if a depth/stencil buffer isn't used.
 	 */
 	dsGfxFormat surfaceDepthStencilFormat;
 
@@ -2218,6 +2314,15 @@ typedef struct dsRenderer
 	 * @brief True if render surfaces are stereoscopic.
 	 */
 	bool stereoscopic;
+
+	/**
+	 * @brief True if render surface formats may be dynamically updated.
+	 *
+	 * When false, the render surface must be manually destroyed and re-created. Higher level code
+	 * may also need to re-create the underlying OS surface as well, such as creating a window with
+	 * a different pixel format.
+	 */
+	bool dynamicRenderSurfaceFormats;
 
 	/**
 	 * @brief True if geometry shaders are supported.
@@ -2321,9 +2426,9 @@ typedef struct dsRenderer
 	dsSetExtraRendererDebuggingFunction setExtraDebuggingFunc;
 
 	/**
-	 * @brief Function to check whether a render surface supports a format.
+	 * @brief Function to check whether the handle to create a render surface supports a format.
 	 */
-	dsRenderSurfaceSupportsFormatFunction renderSurfaceSupportsFormatFunc;
+	dsRenderSurfaceHandleSupportsFormatFunction renderSurfaceHandleSupportsFormatFunc;
 
 	/**
 	 * @brief Render surface creation function.
@@ -2334,6 +2439,13 @@ typedef struct dsRenderer
 	 * @brief Render surface destruction function.
 	 */
 	dsDestroyRenderSurfaceFunction destroyRenderSurfaceFunc;
+
+	/**
+	 * @brief Function to check whether the handle to create a render surface supports a format.
+	 *
+	 * This may be NULL for implementations that don't support dynamic render surface formats.
+	 */
+	dsRenderSurfaceSupportsFormatFunction renderSurfaceSupportsFormatFunc;
 
 	/**
 	 * @brief Render surface update function.

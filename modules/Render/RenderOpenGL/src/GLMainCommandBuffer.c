@@ -452,19 +452,18 @@ static bool endRenderSubpass(dsGLMainCommandBuffer* commandBuffer,
 	return true;
 }
 
-static dsGfxFormat getSurfaceFormat(dsRenderer* renderer, dsGfxSurfaceType surfaceType,
-	void* surface)
+static dsGfxFormat getSurfaceFormat(dsGfxSurfaceType surfaceType, void* surface)
 {
 	switch (surfaceType)
 	{
 		case dsGfxSurfaceType_ColorRenderSurface:
 		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
 		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			return renderer->surfaceColorFormat;
+			return ((dsRenderSurface*)surface)->colorFormat;
 		case dsGfxSurfaceType_DepthRenderSurface:
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-			return renderer->surfaceDepthStencilFormat;
+			return ((dsRenderSurface*)surface)->depthStencilFormat;
 		case dsGfxSurfaceType_Offscreen:
 			return ((dsTexture*)surface)->info.format;
 		case dsGfxSurfaceType_Renderbuffer:
@@ -2003,8 +2002,7 @@ bool dsGLMainCommandBuffer_blitSurface(dsCommandBuffer* commandBuffer,
 	dsGLRenderer_bindFramebuffer(renderer, dstGLSurfaceType, dstFramebuffer,
 		GLFramebufferFlags_Temporary);
 
-	GLbitfield buffers = dsGLTexture_buffers(
-		getSurfaceFormat(renderer, srcSurfaceType, srcSurface));
+	GLbitfield buffers = dsGLTexture_buffers(getSurfaceFormat(srcSurfaceType, srcSurface));
 	uint32_t srcWidth, srcHeight, srcFaces;
 	bool srcInvertY;
 	uint32_t dstWidth, dstHeight, dstFaces;

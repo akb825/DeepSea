@@ -248,10 +248,11 @@ TEST_F(RenderSurfaceTest, RotateScissor)
 TEST_F(RenderSurfaceTest, Create)
 {
 	EXPECT_FALSE(dsRenderSurface_create(NULL, NULL, NULL, NULL, NULL, dsRenderSurfaceType_Direct,
-		dsRenderSurfaceUsage_Standard, 0, 0));
+		dsRenderSurfaceUsage_Standard, dsRenderSurfaceColorType_SDR, 0, 0));
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL, NULL,
-		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, 0, 0);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, dsRenderSurfaceColorType_SDR,
+		0, 0);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_destroy(renderSurface));
@@ -260,7 +261,8 @@ TEST_F(RenderSurfaceTest, Create)
 TEST_F(RenderSurfaceTest, Update)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL, NULL,
-		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, 1920, 1080);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, dsRenderSurfaceColorType_SDR,
+		1920, 1080);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_update(NULL, 0, 0));
@@ -281,7 +283,8 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 	dsCommandBuffer* commandBuffer = renderer->mainCommandBuffer;
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL, NULL,
-		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, 0, 0);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, dsRenderSurfaceColorType_SDR, 0,
+		0);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_FALSE(dsRenderSurface_beginDraw(renderSurface, NULL));
@@ -300,7 +303,8 @@ TEST_F(RenderSurfaceTest, BeginEnd)
 TEST_F(RenderSurfaceTest, SwapBuffers)
 {
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL, NULL,
-		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, 0, 0);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, dsRenderSurfaceColorType_SDR, 0,
+		0);
 	ASSERT_TRUE(renderSurface);
 
 	EXPECT_TRUE(dsRenderSurface_swapBuffers(NULL, 0));

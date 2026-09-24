@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019 Aaron Barany
+ * Copyright 2018-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ void RenderPassFixtureBase::SetUp()
 	dsRenderPassAttachmentInfo attachments[] =
 	{
 		{dsAttachmentUsage_Standard, dsGfxFormat_SurfaceDepthStencil, DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES}
+		{dsAttachmentUsage_KeepAfter, dsGfxFormat_SDRSurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 	dsRenderPassAttachmentRef colorAttachments[] = {{1, true}};
@@ -39,7 +39,8 @@ void RenderPassFixtureBase::SetUp()
 	ASSERT_TRUE(renderPass);
 
 	renderSurface = dsRenderSurface_create(renderer, NULL, "test", NULL, NULL,
-		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, 1920, 1080);
+		dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, dsRenderSurfaceColorType_SDR,
+		1920, 1080);
 	ASSERT_TRUE(renderSurface);
 
 	dsFramebufferSurface surfaces[] =

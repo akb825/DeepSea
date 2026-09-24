@@ -19,18 +19,19 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Types.h>
 
-int dsGLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+int dsGLRenderSurface_handleSupportsFormat(const dsRenderer* renderer, void* displayHandle,
 	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
 	uint32_t samples);
 dsRenderSurface* dsGLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint);
+	dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType, unsigned int widthHint,
+	unsigned int heightHint);
 bool dsGLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
 	unsigned int widthHint, unsigned int heightHint);
-bool dsGLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface);
-bool dsGLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface);
-bool dsGLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
-	uint32_t count);
+bool dsGLRenderSurface_beginDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface);
+bool dsGLRenderSurface_endDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface);
+bool dsGLRenderSurface_swapBuffers(
+	dsRenderer* renderer, dsRenderSurface** renderSurfaces, uint32_t count);
 bool dsGLRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface);

@@ -273,10 +273,10 @@ TEST_F(RenderPassTest, Create)
 	{
 		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceDepthStencil,
 			DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceColor,
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SDRSurfaceColor,
 			DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES},
-		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES}
+		{dsAttachmentUsage_Clear, dsGfxFormat_SDRSurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES},
+		{dsAttachmentUsage_Clear, dsGfxFormat_SDRSurfaceColor, DS_DEFAULT_ANTIALIAS_SAMPLES}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
@@ -395,10 +395,10 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	{
 		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceDepthStencil,
 			renderer->surfaceSamples},
-		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SurfaceColor,
+		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter, dsGfxFormat_SDRSurfaceColor,
 			renderer->surfaceSamples},
-		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceColor, renderer->surfaceSamples},
-		{dsAttachmentUsage_Clear, dsGfxFormat_SurfaceColor, renderer->surfaceSamples}
+		{dsAttachmentUsage_Clear, dsGfxFormat_SDRSurfaceColor, renderer->surfaceSamples},
+		{dsAttachmentUsage_Clear, dsGfxFormat_SDRSurfaceColor, renderer->surfaceSamples}
 	};
 	uint32_t attachmentCount = DS_ARRAY_SIZE(attachments);
 
@@ -433,10 +433,11 @@ TEST_F(RenderPassTest, BeginNextEnd)
 	ASSERT_TRUE(renderPass);
 
 	dsRenderSurface* renderSurface = dsRenderSurface_create(renderer, nullptr, "test", nullptr,
-		nullptr, dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard, 1920, 1080);
+		nullptr, dsRenderSurfaceType_Direct, dsRenderSurfaceUsage_Standard,
+		dsRenderSurfaceColorType_SDR, 1920, 1080);
 	ASSERT_TRUE(renderSurface);
 
-	dsTextureInfo colorInfo = {renderer->surfaceColorFormat, dsTextureDim_2D, renderSurface->width,
+	dsTextureInfo colorInfo = {dsGfxFormat_SDRSurfaceColor, dsTextureDim_2D, renderSurface->width,
 		renderSurface->height, 0, 0, renderer->surfaceSamples};
 	dsOffscreen* offscreen1 = dsTexture_createOffscreen(resourceManager, 0,
 		dsTextureUsage_SubpassInput, dsGfxMemory_GPUOnly, &colorInfo, true);

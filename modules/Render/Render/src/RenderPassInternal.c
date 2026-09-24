@@ -86,8 +86,7 @@ bool dsRenderPass_canUseFramebuffer(const dsRenderPass* renderPass,
 	{
 		dsGfxFormat attachmentFormat = dsGfxFormat_resolve(
 			renderer, renderPass->attachments[i].format);
-		if (dsFramebuffer_getSurfaceFormat(renderer, framebuffer->surfaces + i) !=
-			attachmentFormat)
+		if (dsFramebuffer_getSurfaceFormat(framebuffer->surfaces + i) != attachmentFormat)
 		{
 			DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 				"Framebuffer surface format doesn't match attachment format.");

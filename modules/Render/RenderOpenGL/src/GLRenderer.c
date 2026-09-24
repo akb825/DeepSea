@@ -404,17 +404,24 @@ bool dsGLRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsGLRenderer_setSurfaceFormat(
-	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+bool dsGLRenderer_setSurfaceFormat(dsRenderer* renderer, const dsRenderSurfaceHint* sdrFormatHint,
+	const dsRenderSurfaceHint* hdrFormatHint, uint32_t samples, bool preferHDR)
 {
+	if (hdrFormatHint || preferHDR)
+	{
+		DS_LOG_ERROR(DS_RENDER_OPENGL_LOG_TAG, "HDR render surfaces not supported.");
+		errno = EINVAL;
+		return false;
+	}
+
 	dsGLRenderer* glRenderer = (dsGLRenderer*)renderer;
 	dsGfxFormat colorFormat, depthFormat;
 	dsRenderColorSpace colorSpace;
-	if (formatHint)
+	if (sdrFormatHint)
 	{
-		colorFormat = dsGLRenderer_surfaceColorFormat(formatHint);
-		depthFormat = dsRenderSurfaceHint_depthStencilFormat(formatHint);
-		colorSpace = formatHint->colorSpace;
+		colorFormat = dsGLRenderer_surfaceColorFormat(sdrFormatHint);
+		depthFormat = dsRenderSurfaceHint_depthStencilFormat(sdrFormatHint);
+		colorSpace = sdrFormatHint->colorSpace;
 		if (!dsGLRenderer_canUseRenderSurfaceFormat(
 				renderer, colorFormat, colorSpace, depthFormat, true))
 		{
@@ -423,12 +430,13 @@ bool dsGLRenderer_setSurfaceFormat(
 	}
 	else
 	{
-		colorFormat = renderer->surfaceColorFormat;
+		colorFormat = renderer->sdrSurfaceColorFormat;
 		depthFormat = renderer->surfaceDepthStencilFormat;
-		colorSpace = renderer->surfaceColorSpace;
+		colorSpace = renderer->sdrSurfaceColorSpace;
 	}
 
-	if (colorFormat == renderer->surfaceColorFormat && colorSpace == renderer->surfaceColorSpace &&
+	if (colorFormat == renderer->sdrSurfaceColorFormat &&
+		colorSpace == renderer->sdrSurfaceColorSpace &&
 		depthFormat == renderer->surfaceDepthStencilFormat && samples == renderer->surfaceSamples)
 	{
 		return true;
@@ -440,8 +448,8 @@ bool dsGLRenderer_setSurfaceFormat(
 
 	void* display = glRenderer->options.gfxDisplay;
 	dsRendererOptions newOptions = glRenderer->options;
-	if (formatHint)
-		newOptions.renderSurfaceHint = *formatHint;
+	if (sdrFormatHint)
+		newOptions.renderSurfaceHint = *sdrFormatHint;
 	newOptions.surfaceSamples = (uint8_t)samples;
 	void* newConfig = dsGLPlatform_createConfig(
 		&glRenderer->platform, renderer->allocator, display, &newOptions, true);
@@ -482,8 +490,8 @@ bool dsGLRenderer_setSurfaceFormat(
 	glRenderer->tempCopyFramebuffer = 0;
 	memset(glRenderer->boundAttributes, 0, sizeof(glRenderer->boundAttributes));
 
-	renderer->surfaceColorFormat = colorFormat;
-	renderer->surfaceColorSpace = colorSpace;
+	renderer->sdrSurfaceColorFormat = renderer->preferredSurfaceColorFormat = colorFormat;
+	renderer->sdrSurfaceColorSpace = renderer->preferredSurfaceColorSpace = colorSpace;
 	renderer->surfaceDepthStencilFormat = depthFormat;
 	renderer->surfaceSamples = samples;
 
@@ -923,8 +931,10 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	baseRenderer->surfaceColorFormat = colorFormat;
-	baseRenderer->surfaceColorSpace = colorSpace;
+	baseRenderer->sdrSurfaceColorFormat = baseRenderer->preferredSurfaceColorFormat = colorFormat;
+	baseRenderer->sdrSurfaceColorSpace = baseRenderer->preferredSurfaceColorSpace = colorSpace;
+	baseRenderer->hdrSurfaceColorFormat = dsGfxFormat_Unknown;
+	baseRenderer->hdrSurfaceColorSpace = dsRenderColorSpace_NonLinearSRGB;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 	baseRenderer->surfaceConfig = dsGLPlatform_getPublicConfig(
 		&renderer->platform, renderer->options.gfxDisplay, renderer->renderConfig);
@@ -951,6 +961,7 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	if (options->reverseZ)
 		baseRenderer->projectionOptions |= dsProjectionMatrixOptions_InvertZ;
 
+	baseRenderer->dynamicRenderSurfaceFormats = false;
 	baseRenderer->hasGeometryShaders =
 		(ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0)) ||
 		(!ANYGL_GLES && baseRenderer->shaderVersion >= DS_ENCODE_VERSION(3, 2, 0));
@@ -981,9 +992,10 @@ dsRenderer* dsGLRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->setExtraDebuggingFunc = &dsGLRenderer_setEnableErrorChecking;
 
 	// Render surfaces
-	baseRenderer->renderSurfaceSupportsFormatFunc = &dsGLRenderSurface_supportsFormat;
+	baseRenderer->renderSurfaceHandleSupportsFormatFunc = &dsGLRenderSurface_handleSupportsFormat;
 	baseRenderer->createRenderSurfaceFunc = &dsGLRenderSurface_create;
 	baseRenderer->destroyRenderSurfaceFunc = &dsGLRenderSurface_destroy;
+	baseRenderer->renderSurfaceSupportsFormatFunc = NULL;
 	baseRenderer->updateRenderSurfaceFunc = &dsGLRenderSurface_update;
 	baseRenderer->beginRenderSurfaceFunc = &dsGLRenderSurface_beginDraw;
 	baseRenderer->endRenderSurfaceFunc = &dsGLRenderSurface_endDraw;

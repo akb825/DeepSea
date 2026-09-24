@@ -22,9 +22,32 @@
 #include <DeepSea/RenderMock/Export.h>
 #include <string.h>
 
+static void setRenderSurfaceColorFormat(const dsRenderer* renderer, dsRenderSurface* renderSurface)
+{
+	switch (renderSurface->colorType)
+	{
+		case dsRenderSurfaceColorType_SDR:
+			renderSurface->colorFormat = renderer->sdrSurfaceColorFormat;
+			renderSurface->colorSpace = renderer->sdrSurfaceColorSpace;
+			break;
+		case dsRenderSurfaceColorType_HDR:
+			renderSurface->colorFormat = renderer->hdrSurfaceColorFormat;
+			renderSurface->colorSpace = renderer->hdrSurfaceColorSpace;
+			break;
+		case dsRenderSurfaceColorType_Preferred:
+			renderSurface->colorFormat = renderer->preferredSurfaceColorFormat;
+			renderSurface->colorSpace = renderer->preferredSurfaceColorSpace;
+			break;
+		default:
+			DS_ASSERT(false);
+			break;
+	}
+}
+
 dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
+	dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType, unsigned int widthHint,
+	unsigned int heightHint)
 {
 	DS_ASSERT(renderer);
 	DS_ASSERT(allocator);
@@ -57,6 +80,10 @@ dsRenderSurface* dsMockRenderSurface_create(dsRenderer* renderer, dsAllocator* a
 	renderSurface->preRotateWidth = renderSurface->width;
 	renderSurface->preRotateHeight = renderSurface->height;
 	renderSurface->rotation = dsRenderSurfaceRotation_0;
+	renderSurface->colorType = colorType;
+	setRenderSurfaceColorFormat(renderer, renderSurface);
+	renderSurface->depthStencilFormat = renderer->surfaceDepthStencilFormat;
+	renderSurface->samples = renderer->surfaceSamples;
 	return renderSurface;
 }
 
@@ -69,11 +96,14 @@ bool dsMockRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSur
 
 	renderSurface->width = widthHint;
 	renderSurface->height = heightHint;
+	setRenderSurfaceColorFormat(renderer, renderSurface);
+	renderSurface->depthStencilFormat = renderer->surfaceDepthStencilFormat;
+	renderSurface->samples = renderer->surfaceSamples;
 	return true;
 }
 
-bool dsMockRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface)
+bool dsMockRenderSurface_beginDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -84,8 +114,8 @@ bool dsMockRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* comman
 	return true;
 }
 
-bool dsMockRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface)
+bool dsMockRenderSurface_endDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);
@@ -96,8 +126,8 @@ bool dsMockRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandB
 	return true;
 }
 
-bool dsMockRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
-	uint32_t count)
+bool dsMockRenderSurface_swapBuffers(
+	dsRenderer* renderer, dsRenderSurface** renderSurfaces, uint32_t count)
 {
 	DS_ASSERT(renderer);
 	DS_UNUSED(renderer);

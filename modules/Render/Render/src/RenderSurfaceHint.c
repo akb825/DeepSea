@@ -200,6 +200,33 @@ bool dsRenderSurfaceHint_fromFormats(dsRenderSurfaceHint* hint,
 	return true;
 }
 
+bool dsRenderSurfaceHint_fromColorType(
+	dsRenderSurfaceHint* hint, const dsRenderer* renderer, dsRenderSurfaceColorType colorType)
+{
+	if (!hint || !renderer)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	switch (colorType)
+	{
+		case dsRenderSurfaceColorType_SDR:
+			return dsRenderSurfaceHint_fromFormats(hint, renderer->sdrSurfaceColorFormat,
+				renderer->surfaceDepthStencilFormat, renderer->sdrSurfaceColorSpace, true);
+		case dsRenderSurfaceColorType_HDR:
+			return dsRenderSurfaceHint_fromFormats(hint, renderer->sdrSurfaceColorFormat,
+				renderer->surfaceDepthStencilFormat, renderer->sdrSurfaceColorSpace, true);
+		case dsRenderSurfaceColorType_Preferred:
+			return dsRenderSurfaceHint_fromFormats(hint,
+				renderer->preferredSurfaceColorFormat, renderer->surfaceDepthStencilFormat,
+				renderer->preferredSurfaceColorSpace, true);
+	}
+
+	errno = EINVAL;
+	return false;
+}
+
 bool dsRenderSurfaceHint_isValid(const dsRenderSurfaceHint* hint)
 {
 	return dsRenderSurfaceHint_colorFormat(hint, dsGfxFormat_R5G6B5, dsGfxFormat_R8G8B8,

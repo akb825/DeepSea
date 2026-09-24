@@ -533,8 +533,12 @@ dsGfxFormat dsGfxFormat_resolve(const dsRenderer* renderer, dsGfxFormat format)
 
 	switch (format)
 	{
-		case dsGfxFormat_SurfaceColor:
-			return renderer->surfaceColorFormat;
+		case dsGfxFormat_SDRSurfaceColor:
+			return renderer->sdrSurfaceColorFormat;
+		case dsGfxFormat_HDRSurfaceColor:
+			return renderer->hdrSurfaceColorFormat;
+		case dsGfxFormat_PreferredSurfaceColor:
+			return renderer->preferredSurfaceColorFormat;
 		case dsGfxFormat_SurfaceDepthStencil:
 			return renderer->surfaceDepthStencilFormat;
 		default:

@@ -19,12 +19,15 @@
 #include <DeepSea/Core/Config.h>
 #include <DeepSea/Render/Types.h>
 
-int dsVkRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+int dsVkRenderSurface_handleSupportsFormat(const dsRenderer* renderer, void* displayHandle,
 	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
 	uint32_t samples);
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint);
+	dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType, unsigned int widthHint,
+	unsigned int heightHint);
+bool dsVkRenderSurface_supportsFormat(const dsRenderer* renderer,
+	const dsRenderSurface* renderSurface, const dsRenderSurfaceHint* formatHint, uint32_t samples);
 bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
 	unsigned int widthHint, unsigned int heightHint);
 bool dsVkRenderSurface_beginDraw(

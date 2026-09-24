@@ -27,10 +27,9 @@
 
 extern const char* dsResourceManager_noContextError;
 
-dsGfxFormat dsFramebuffer_getSurfaceFormat(
-	const dsRenderer* renderer, const dsFramebufferSurface* surface)
+dsGfxFormat dsFramebuffer_getSurfaceFormat(const dsFramebufferSurface* surface)
 {
-	if (!renderer || !surface)
+	if (!surface)
 	{
 		errno = EINVAL;
 		return dsGfxFormat_Unknown;
@@ -41,11 +40,11 @@ dsGfxFormat dsFramebuffer_getSurfaceFormat(
 		case dsGfxSurfaceType_ColorRenderSurface:
 		case dsGfxSurfaceType_ColorRenderSurfaceLeft:
 		case dsGfxSurfaceType_ColorRenderSurfaceRight:
-			return renderer->surfaceColorFormat;
+			return ((const dsRenderSurface*)surface->surface)->colorFormat;
 		case dsGfxSurfaceType_DepthRenderSurface:
 		case dsGfxSurfaceType_DepthRenderSurfaceLeft:
 		case dsGfxSurfaceType_DepthRenderSurfaceRight:
-			return renderer->surfaceDepthStencilFormat;
+			return ((const dsRenderSurface*)surface->surface)->depthStencilFormat;
 		case dsGfxSurfaceType_Offscreen:
 			return ((const dsOffscreen*)surface->surface)->info.format;
 		case dsGfxSurfaceType_Renderbuffer:
@@ -119,7 +118,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				}
 				renderSurface = surface;
 
-				surfaceFormat = surface->renderer->surfaceColorFormat;
+				surfaceFormat = surface->colorFormat;
 				surfaceWidth = surface->preRotateWidth;
 				surfaceHeight = surface->preRotateHeight;
 				surfaceLayers = 1;
@@ -148,7 +147,7 @@ dsFramebuffer* dsFramebuffer_create(dsResourceManager* resourceManager, dsAlloca
 				}
 				renderSurface = surface;
 
-				surfaceFormat = surface->renderer->surfaceDepthStencilFormat;
+				surfaceFormat = surface->depthStencilFormat;
 				surfaceWidth = surface->preRotateWidth;
 				surfaceHeight = surface->preRotateHeight;
 				surfaceLayers = 1;

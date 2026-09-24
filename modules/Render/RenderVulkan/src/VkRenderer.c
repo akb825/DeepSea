@@ -1340,23 +1340,58 @@ bool dsVkRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsVkRenderer_setSurfaceFormat(
-	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+bool dsVkRenderer_setSurfaceFormat(dsRenderer* renderer, const dsRenderSurfaceHint* sdrFormatHint,
+	const dsRenderSurfaceHint* hdrFormatHint, uint32_t samples, bool preferHDR)
 {
-	if (formatHint)
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+
+	// Check HDR format first when set so all error checking can be done before modifying members.
+	dsGfxFormat hdrColorFormat = renderer->hdrSurfaceColorFormat;
+	dsRenderColorSpace hdrColorSpace = renderer->hdrSurfaceColorSpace;
+	if (hdrFormatHint)
 	{
-		dsGfxFormat colorFormat = dsVkRenderer_surfaceColorFormat(renderer, formatHint);
-		dsRenderColorSpace colorSpace = formatHint->colorSpace;
-		dsGfxFormat depthFormat = dsVkRenderer_surfaceDepthStencilFormat(renderer, formatHint);
+		hdrColorFormat = dsVkRenderer_surfaceColorFormat(renderer, hdrFormatHint);
+		hdrColorSpace = hdrFormatHint->colorSpace;
+		if (!dsVkRenderer_canUseRenderSurfaceFormat(
+				renderer, hdrColorFormat, hdrColorSpace, dsGfxFormat_Unknown, true))
+		{
+			return false;
+		}
+	}
+
+	if (sdrFormatHint)
+	{
+		dsGfxFormat colorFormat = dsVkRenderer_surfaceColorFormat(renderer, sdrFormatHint);
+		dsRenderColorSpace colorSpace = sdrFormatHint->colorSpace;
+		dsGfxFormat depthFormat = dsVkRenderer_surfaceDepthStencilFormat(renderer, sdrFormatHint);
 		if (!dsVkRenderer_canUseRenderSurfaceFormat(
 				renderer, colorFormat, colorSpace, depthFormat, true))
 		{
 			return false;
 		}
 
-		renderer->surfaceColorFormat = colorFormat;
-		renderer->surfaceColorSpace = colorSpace;
+		renderer->sdrSurfaceColorFormat = colorFormat;
+		renderer->sdrSurfaceColorSpace = colorSpace;
 		renderer->surfaceDepthStencilFormat = depthFormat;
+		vkRenderer->sdrColorSurfaceAlpha = sdrFormatHint->alphaBits > 0;
+	}
+
+	if (hdrFormatHint)
+	{
+		renderer->hdrSurfaceColorFormat = hdrColorFormat;
+		renderer->hdrSurfaceColorSpace = hdrColorSpace;
+		vkRenderer->hdrColorSurfaceAlpha = hdrFormatHint->alphaBits > 0;
+	}
+
+	if (preferHDR)
+	{
+		renderer->preferredSurfaceColorFormat = hdrColorFormat;
+		renderer->preferredSurfaceColorSpace = hdrColorSpace;
+	}
+	else
+	{
+		renderer->preferredSurfaceColorFormat = renderer->sdrSurfaceColorFormat;
+		renderer->preferredSurfaceColorSpace = renderer->sdrSurfaceColorSpace;
 	}
 
 	renderer->surfaceSamples = samples;
@@ -2176,7 +2211,8 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 
 	baseRenderer->singleBuffer = false;
 	baseRenderer->stereoscopic = options->stereoscopic;
-	baseRenderer->vsync = false;
+	baseRenderer->vsync = dsVSync_Disabled;
+	baseRenderer->dynamicRenderSurfaceFormats = true;
 	baseRenderer->hasGeometryShaders = device->features.geometryShader != 0;
 	baseRenderer->hasTessellationShaders = device->features.tessellationShader != 0;
 	baseRenderer->hasNativeMultidraw = true;
@@ -2213,9 +2249,12 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 		return NULL;
 	}
 
-	baseRenderer->surfaceColorFormat = colorFormat;
-	baseRenderer->surfaceColorSpace = colorSpace;
-	renderer->colorSurfaceAlpha = options->renderSurfaceHint.alphaBits > 0;
+	baseRenderer->sdrSurfaceColorFormat = baseRenderer->preferredSurfaceColorFormat = colorFormat;
+	baseRenderer->sdrSurfaceColorSpace = baseRenderer->preferredSurfaceColorSpace = colorSpace;
+	baseRenderer->hdrSurfaceColorFormat = dsGfxFormat_Unknown;
+	baseRenderer->hdrSurfaceColorSpace = dsRenderColorSpace_NonLinearSRGB;
+	renderer->sdrColorSurfaceAlpha = options->renderSurfaceHint.alphaBits > 0;
+	renderer->hdrColorSurfaceAlpha = false;
 	baseRenderer->surfaceDepthStencilFormat = depthFormat;
 
 	if (!createCommandBuffers(renderer))
@@ -2234,9 +2273,10 @@ dsRenderer* dsVkRenderer_create(dsAllocator* allocator, const dsRendererOptions*
 	baseRenderer->destroyFunc = &dsVkRenderer_destroy;
 
 	// Render surfaces
-	baseRenderer->renderSurfaceSupportsFormatFunc = &dsVkRenderSurface_supportsFormat;
+	baseRenderer->renderSurfaceHandleSupportsFormatFunc = &dsVkRenderSurface_handleSupportsFormat;
 	baseRenderer->createRenderSurfaceFunc = &dsVkRenderSurface_create;
 	baseRenderer->destroyRenderSurfaceFunc = &dsVkRenderSurface_destroy;
+	baseRenderer->renderSurfaceSupportsFormatFunc = &dsVkRenderSurface_supportsFormat;
 	baseRenderer->updateRenderSurfaceFunc = &dsVkRenderSurface_update;
 	baseRenderer->beginRenderSurfaceFunc = &dsVkRenderSurface_beginDraw;
 	baseRenderer->endRenderSurfaceFunc = &dsVkRenderSurface_endDraw;

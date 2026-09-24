@@ -452,7 +452,7 @@ static bool setGLAttributes(
 
 inline static bool setDefaultGLAttributes(const dsRenderer* renderer)
 {
-	return setGLAttributes(renderer->surfaceColorFormat, renderer->surfaceDepthStencilFormat,
+	return setGLAttributes(renderer->sdrSurfaceColorFormat, renderer->surfaceDepthStencilFormat,
 		renderer->surfaceSamples, renderer->stereoscopic);
 }
 
@@ -468,7 +468,7 @@ static bool displaySupportsFormat(const dsApplication* application, const dsDisp
 	void* displayHandle;
 	void* windowHandle;
 	bool result = dsSDLWindow_getWindowHandle(&displayHandle, &windowHandle, application, window) &&
-		dsRenderSurface_supportsFormat(application->renderer, displayHandle, windowHandle,
+		dsRenderSurface_handleSupportsFormat(application->renderer, displayHandle, windowHandle,
 			dsRenderSurfaceType_Window, formatHint, samples);
 	SDL_DestroyWindow(window);
 	return result;
@@ -564,14 +564,29 @@ static bool updateWindowState(
 	}
 
 	const dsRenderSurface* surface = window->surface;
-	if (surface && (sdlWindow->curSurfaceWidth != surface->width ||
-		sdlWindow->curSurfaceHeight != surface->height ||
-		sdlWindow->curSurfaceRotation != surface->rotation))
+	if (surface)
 	{
-		changeFlags |= dsWindowChangeFlags_SurfaceSize;
-		sdlWindow->curSurfaceWidth = surface->width;
-		sdlWindow->curSurfaceHeight = surface->height;
-		sdlWindow->curSurfaceRotation = surface->rotation;
+		if (sdlWindow->curSurfaceWidth != surface->width ||
+			sdlWindow->curSurfaceHeight != surface->height ||
+			sdlWindow->curSurfaceRotation != surface->rotation)
+		{
+			changeFlags |= dsWindowChangeFlags_SurfaceSize;
+			sdlWindow->curSurfaceWidth = surface->width;
+			sdlWindow->curSurfaceHeight = surface->height;
+			sdlWindow->curSurfaceRotation = surface->rotation;
+		}
+
+		if (sdlWindow->curSurfaceSamples != surface->samples ||
+			sdlWindow->curSurfaceColorFormat != surface->colorFormat ||
+			sdlWindow->curSurfaceColorSpace != surface->colorSpace ||
+			sdlWindow->curSurfaceDepthStencilFormat != surface->depthStencilFormat)
+		{
+			changeFlags |= dsWindowChangeFlags_SurfaceFormat;
+			sdlWindow->curSurfaceSamples = surface->samples;
+			sdlWindow->curSurfaceColorFormat = surface->colorFormat;
+			sdlWindow->curSurfaceColorSpace = surface->colorSpace;
+			sdlWindow->curSurfaceDepthStencilFormat = surface->depthStencilFormat;
+		}
 	}
 
 	if (window->contentScale != contentScale)
@@ -1109,20 +1124,61 @@ static bool convertEvent(
 
 static void finalizeEvents(dsApplication* application)
 {
+	dsRenderer* renderer = application->renderer;
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	DS_ASSERT(sdlApplication->hasFrameEvents);
 
 	// Sanity check for any windows that might have a missing display or render surface size
-	// change didn't get caught by other events.
+	// change didn't get caught by other events. Also check for format updates that may have
+	// occurred in response to other events.
+	uint32_t samples = renderer->surfaceSamples;
+	dsGfxFormat depthFormat = renderer->surfaceDepthStencilFormat;
 	for (uint32_t i = 0; i < application->windowCount; ++i)
 	{
 		dsWindow* window = application->windows[i];
 		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-		const dsRenderSurface* surface = window->surface;
+		dsRenderSurface* surface = window->surface;
+
+		dsGfxFormat colorFormat;
+		dsRenderColorSpace colorSpace;
+		switch (window->colorType)
+		{
+			case dsRenderSurfaceColorType_SDR:
+				colorFormat = renderer->sdrSurfaceColorFormat;
+				colorSpace = renderer->sdrSurfaceColorSpace;
+				break;
+			case dsRenderSurfaceColorType_HDR:
+				colorFormat = renderer->hdrSurfaceColorFormat;
+				colorSpace = renderer->hdrSurfaceColorSpace;
+				break;
+			case dsRenderSurfaceColorType_Preferred:
+				colorFormat = renderer->preferredSurfaceColorFormat;
+				colorSpace = renderer->preferredSurfaceColorSpace;
+				break;
+			default:
+				DS_ASSERT(false);
+				// Avoid compiler warnings.
+				colorFormat = renderer->sdrSurfaceColorFormat;
+				colorSpace = renderer->sdrSurfaceColorSpace;
+				break;
+		}
+
+		bool formatChanged = sdlWindow->curSurfaceSamples != samples ||
+			sdlWindow->curSurfaceColorFormat != colorFormat ||
+			sdlWindow->curSurfaceColorSpace != colorSpace ||
+			sdlWindow->curSurfaceDepthStencilFormat != depthFormat;
+
 		if (!window->display || (surface && (sdlWindow->curSurfaceWidth != surface->width ||
 			sdlWindow->curSurfaceHeight != surface->height ||
-			sdlWindow->curSurfaceRotation != surface->rotation)))
+			sdlWindow->curSurfaceRotation != surface->rotation || formatChanged)))
 		{
+			// Update the render surface again if the format doesn't match.
+			if (surface->samples != samples || surface->colorFormat != colorFormat ||
+				surface->colorSpace != colorSpace || surface->depthStencilFormat != depthFormat)
+			{
+				dsRenderSurface_update(surface, surface->width, surface->height);
+			}
+
 			dsEvent event;
 			event.time = dsTimer_currentTicks();
 			if (updateWindowState(&event, application, window, false))
@@ -1138,18 +1194,24 @@ static void finalizeEvents(dsApplication* application)
 
 static void updateWindowFormat(dsApplication* application, uint64_t eventTime)
 {
-	if (application->windowCount == 0)
-		return;
-
+	// This is only valid for OpenGL targets, where the render surface format is tied to the window
+	// itself.
 	const dsRenderer* renderer = application->renderer;
+	if (application->windowCount == 0 || (renderer->rendererID != DS_GL_RENDERER_ID &&
+			renderer->rendererID != DS_GLES_RENDERER_ID))
+	{
+		return;
+	}
+
 	bool changed = false;
 	for (unsigned int i = 0; i < application->windowCount; ++i)
 	{
 		dsWindow* window = application->windows[i];
 		dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-		if (sdlWindow->samples != renderer->surfaceSamples ||
-			sdlWindow->colorFormat != renderer->surfaceColorFormat ||
-			sdlWindow->depthStencilFormat != renderer->surfaceDepthStencilFormat)
+		// NOTE: Should be guaranteed to be SDR only for OpenGL.
+		if (sdlWindow->curSurfaceSamples != renderer->surfaceSamples ||
+			sdlWindow->curSurfaceColorFormat != renderer->sdrSurfaceColorFormat ||
+			sdlWindow->curSurfaceDepthStencilFormat != renderer->surfaceDepthStencilFormat)
 		{
 			changed = true;
 		}
@@ -1175,11 +1237,7 @@ static void updateWindowFormat(dsApplication* application, uint64_t eventTime)
 			window->flags |= dsWindowFlags_DelaySurfaceCreate;
 	}
 
-	if (renderer->rendererID == DS_GL_RENDERER_ID ||
-		renderer->rendererID == DS_GLES_RENDERER_ID)
-	{
-		setDefaultGLAttributes(renderer);
-	}
+	setDefaultGLAttributes(renderer);
 
 	// Need to destroy the SDL windows before restarting video for X11 below.
 	for (unsigned int i = 0; i < application->windowCount; ++i)
@@ -1761,6 +1819,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	baseApplication->createWindowFunc = &dsSDLWindow_create;
 	baseApplication->destroyWindowFunc = &dsSDLWindow_destroy;
 	baseApplication->createWindowSurfaceFunc = &dsSDLWindow_createSurface;
+	baseApplication->windowSupportsFormatFunc = &dsSDLWindow_supportsFormat;
+	baseApplication->setWindowColorTypeFunc = &dsSDLWindow_setColorType;
 	baseApplication->getFocusWindowFunc = &dsSDLWindow_getFocusWindow;
 	baseApplication->setWindowTitleFunc = &dsSDLWindow_setTitle;
 	baseApplication->setWindowDisplayModeFunc = &dsSDLWindow_setDisplayMode;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2025 Aaron Barany
+ * Copyright 2019-2026 Aaron Barany
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,18 +19,21 @@
 #include <DeepSea/Core/Config.h>
 #include "MTLTypes.h"
 
-int dsMTLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+int dsMTLRenderSurface_handleSupportsFormat(const dsRenderer* renderer, void* displayHandle,
 	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
 	uint32_t samples);
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint);
+	dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType, unsigned int widthHint,
+	unsigned int heightHint);
+bool dsMTLRenderSurface_supportsFormat(const dsRenderer* renderer,
+	const dsRenderSurface* renderSurface, const dsRenderSurfaceHint* formatHint, uint32_t samples);
 bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
 	unsigned int widthHint, unsigned int heightHint);
-bool dsMTLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface);
-bool dsMTLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface);
-bool dsMTLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
-	uint32_t count);
+bool dsMTLRenderSurface_beginDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface);
+bool dsMTLRenderSurface_endDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface);
+bool dsMTLRenderSurface_swapBuffers(
+	dsRenderer* renderer, dsRenderSurface** renderSurfaces, uint32_t count);
 bool dsMTLRenderSurface_destroy(dsRenderer* renderer, dsRenderSurface* renderSurface);

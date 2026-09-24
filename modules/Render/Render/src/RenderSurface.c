@@ -28,6 +28,7 @@
 #include <DeepSea/Math/Matrix22.h>
 #include <DeepSea/Math/Matrix44.h>
 
+#include <DeepSea/Render/Resources/GfxFormat.h>
 #include <DeepSea/Render/RenderSurfaceHint.h>
 
 #include <stdio.h>
@@ -287,24 +288,42 @@ bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result, const dsAlignedBox2f*
 	}
 }
 
-int dsRenderSurface_isSupported(
-	const dsRenderer* renderer, void* displayHandle, void* osHandle, dsRenderSurfaceType type)
+int dsRenderSurface_isHandleSupported(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceColorType colorType)
 {
 	if (!renderer)
 		return -1;
 
-	if (!renderer->renderSurfaceSupportsFormatFunc)
+	if (!renderer->renderSurfaceHandleSupportsFormatFunc)
 		return true;
 
 	dsRenderSurfaceHint hint;
-	DS_VERIFY(dsRenderSurfaceHint_fromFormats(&hint, renderer->surfaceColorFormat,
-		renderer->surfaceDepthStencilFormat, renderer->surfaceColorSpace, true));
-	return renderer->renderSurfaceSupportsFormatFunc(
+	switch (colorType)
+	{
+		case dsRenderSurfaceColorType_SDR:
+			DS_VERIFY(dsRenderSurfaceHint_fromFormats(&hint, renderer->sdrSurfaceColorFormat,
+				renderer->surfaceDepthStencilFormat, renderer->sdrSurfaceColorSpace, true));
+			break;
+		case dsRenderSurfaceColorType_HDR:
+			if (!dsGfxFormat_isValid(renderer->hdrSurfaceColorFormat))
+				return false;
+			DS_VERIFY(dsRenderSurfaceHint_fromFormats(&hint, renderer->hdrSurfaceColorFormat,
+				renderer->surfaceDepthStencilFormat, renderer->hdrSurfaceColorSpace, true));
+			break;
+		case dsRenderSurfaceColorType_Preferred:
+			DS_VERIFY(dsRenderSurfaceHint_fromFormats(&hint, renderer->preferredSurfaceColorFormat,
+				renderer->surfaceDepthStencilFormat, renderer->preferredSurfaceColorSpace, true));
+			break;
+		default:
+			return false;
+	}
+	return renderer->renderSurfaceHandleSupportsFormatFunc(
 		renderer, displayHandle, osHandle, type, &hint, renderer->surfaceSamples);
 }
 
-int dsRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle, void* osHandle,
-	dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+int dsRenderSurface_handleSupportsFormat(const dsRenderer* renderer, void* displayHandle,
+	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
+	uint32_t samples)
 {
 	if (!renderer || !formatHint)
 		return -1;
@@ -318,13 +337,14 @@ int dsRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHand
 			dsGfxFormat_R8G8B8A8, dsGfxFormat_A2B10G10R10) != dsGfxFormat_Unknown;
 	}
 
-	return renderer->renderSurfaceSupportsFormatFunc(
+	return renderer->renderSurfaceHandleSupportsFormatFunc(
 		renderer, displayHandle, osHandle, type, formatHint, samples);
 }
 
 dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
+	dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType, unsigned int widthHint,
+	unsigned int heightHint)
 {
 	DS_PROFILE_FUNC_START();
 
@@ -335,19 +355,131 @@ dsRenderSurface* dsRenderSurface_create(dsRenderer* renderer, dsAllocator* alloc
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
+	switch (colorType)
+	{
+		case dsRenderSurfaceColorType_SDR:
+		case dsRenderSurfaceColorType_Preferred:
+			break;
+		case dsRenderSurfaceColorType_HDR:
+			if (!dsGfxFormat_isValid(renderer->hdrSurfaceColorFormat))
+			{
+				DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot create an HDR render surface without an "
+					"HDR surface format set on the renderer.");
+				errno = EPERM;
+				DS_PROFILE_FUNC_RETURN(NULL);
+			}
+			break;
+		default:
+			errno = EINVAL;
+			DS_PROFILE_FUNC_RETURN(NULL);
+	}
+
 	if (!allocator)
 		allocator = renderer->allocator;
 
 	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render surfaces may only be created on the main thread.");
+		errno = EPERM;
 		DS_PROFILE_FUNC_RETURN(NULL);
 	}
 
 	dsRenderSurface* renderSurface = renderer->createRenderSurfaceFunc(renderer, allocator, name,
-		displayHandle, osHandle, type, usage, widthHint, heightHint);
+		displayHandle, osHandle, type, usage, colorType, widthHint, heightHint);
 	DS_PROFILE_FUNC_RETURN(renderSurface);
+}
+
+bool dsRenderSurface_isValid(const dsRenderSurface* renderSurface)
+{
+	if (!renderSurface || !renderSurface->renderer)
+		return false;
+
+	const dsRenderer* renderer = renderSurface->renderer;
+	if (!renderer->renderSurfaceSupportsFormatFunc)
+		return true;
+
+	dsRenderSurfaceHint formatHint;
+	if (!dsRenderSurfaceHint_fromColorType(&formatHint, renderer, renderSurface->colorType))
+		return false;
+
+	return renderer->renderSurfaceSupportsFormatFunc(
+		renderer, renderSurface, &formatHint, renderer->surfaceSamples);
+}
+
+bool dsRenderSurface_supportsColorType(
+	const dsRenderSurface* renderSurface, dsRenderSurfaceColorType colorType)
+{
+	if (!renderSurface || !renderSurface->renderer ||
+		!renderSurface->renderer->renderSurfaceSupportsFormatFunc)
+	{
+		return false;
+	}
+
+	const dsRenderer* renderer = renderSurface->renderer;
+	dsRenderSurfaceHint formatHint;
+	if (!dsRenderSurfaceHint_fromColorType(&formatHint, renderer, colorType))
+		return false;
+
+	return renderer->renderSurfaceSupportsFormatFunc(
+		renderer, renderSurface, &formatHint, renderer->surfaceSamples);
+}
+
+bool dsRenderSurface_supportsFormat(
+	const dsRenderSurface* renderSurface, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	if (!renderSurface || !renderSurface->renderer ||
+		!renderSurface->renderer->renderSurfaceSupportsFormatFunc ||
+		samples > renderSurface->renderer->maxSurfaceSamples)
+	{
+		return false;
+	}
+
+	const dsRenderer* renderer = renderSurface->renderer;
+	return renderer->renderSurfaceSupportsFormatFunc(renderer, renderSurface, formatHint, samples);
+}
+
+bool dsRenderSurface_setColorType(
+	dsRenderSurface* renderSurface, dsRenderSurfaceColorType colorType)
+{
+	if (!renderSurface || !renderSurface->renderer ||
+		!renderSurface->renderer->renderSurfaceSupportsFormatFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	const dsRenderer* renderer = renderSurface->renderer;
+	if (!renderer->dynamicRenderSurfaceFormats)
+	{
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Current target doesn't support changing the color type on "
+			"an existing render surface.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (colorType == dsRenderSurfaceColorType_HDR &&
+		!dsGfxFormat_isValid(renderer->hdrSurfaceColorFormat))
+	{
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot create an HDR render surface without an "
+			"HDR surface format set on the renderer.");
+		errno = EPERM;
+		return false;
+	}
+
+	dsRenderSurfaceHint formatHint;
+	if (!dsRenderSurfaceHint_fromColorType(&formatHint, renderer, colorType))
+		return false;
+
+	if (!renderer->renderSurfaceSupportsFormatFunc(
+			renderer, renderSurface, &formatHint, renderer->surfaceSamples))
+	{
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Render surface doesn't support color type.");
+		errno = EPERM;
+		return false;
+	}
+
+	renderSurface->colorType = colorType;
+	return true;
 }
 
 bool dsRenderSurface_update(
@@ -367,9 +499,9 @@ bool dsRenderSurface_update(
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
-	bool resized = renderSurface->renderer->updateRenderSurfaceFunc(renderSurface->renderer,
-		renderSurface, widthHint, heightHint);
-	DS_PROFILE_FUNC_RETURN(resized);
+	bool changed = renderSurface->renderer->updateRenderSurfaceFunc(
+		renderSurface->renderer, renderSurface, widthHint, heightHint);
+	DS_PROFILE_FUNC_RETURN(changed);
 }
 
 bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBuffer* commandBuffer)
@@ -381,65 +513,65 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 		!renderSurface->renderer->beginRenderSurfaceFunc ||
 		!renderSurface->renderer->endRenderSurfaceFunc)
 	{
-		errno = EINVAL;
 		DS_PROFILE_FUNC_END();
 		endSurfaceScope(renderSurface);
+		errno = EINVAL;
 		return false;
 	}
 
 	if (commandBuffer->usage & dsCommandBufferUsage_Resource)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Cannot begin drawing to a render surface with a resource command buffer.");
+		errno = EPERM;
 		return false;
 	}
 
 	if (!commandBuffer->frameActive)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Cannot begin drawing to a render surface outside of a frame.");
+		errno = EPERM;
 		return false;
 	}
 
 	if (commandBuffer->boundSurface)
 	{
-		errno = EPERM;
 		DS_PROFILE_FUNC_END();
 		endSurfaceScope(renderSurface);
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Cannot begin drawing to a render surface when one is already bound.");
+		errno = EPERM;
 		return false;
 	}
 
 	if (commandBuffer->boundRenderPass)
 	{
-		errno = EPERM;
 		DS_PROFILE_FUNC_END();
 		endSurfaceScope(renderSurface);
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Cannot begin drawing to a render surface inside of a render pass.");
+		errno = EPERM;
 		return false;
 	}
 
 	if (commandBuffer->usage & dsCommandBufferUsage_Secondary)
 	{
-		errno = EPERM;
 		DS_PROFILE_FUNC_END();
 		endSurfaceScope(renderSurface);
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Cannot begin drawing to a render surface inside of a secondary command buffer.");
+		errno = EPERM;
 		return false;
 	}
 
 	if (commandBuffer->boundComputeShader)
 	{
-		errno = EPERM;
 		DS_PROFILE_FUNC_END();
 		endSurfaceScope(renderSurface);
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Cannot begin drawing to a render surface while a compute shader is bound.");
+		errno = EPERM;
 		return false;
 	}
 
@@ -448,8 +580,8 @@ bool dsRenderSurface_beginDraw(const dsRenderSurface* renderSurface, dsCommandBu
 	DS_PROFILE_FUNC_END();
 	if (begun)
 	{
-		dsGPUProfileContext_beginSurface(renderer->_profileContext, commandBuffer,
-			renderSurface->name);
+		dsGPUProfileContext_beginSurface(
+			renderer->_profileContext, commandBuffer, renderSurface->name);
 		commandBuffer->boundSurface = renderSurface;
 	}
 	else
@@ -470,25 +602,25 @@ bool dsRenderSurface_endDraw(const dsRenderSurface* renderSurface, dsCommandBuff
 
 	if (commandBuffer->boundSurface != renderSurface)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Can only end drawing to the currently bound render surface.");
+		errno = EPERM;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (commandBuffer->boundRenderPass)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Cannot end drawing to a render surface inside of a render pass.");
+		errno = EPERM;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
 	if (commandBuffer->boundComputeShader)
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Cannot end drawing to a render surface while a compute shader is bound.");
+		errno = EPERM;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 
@@ -510,8 +642,8 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, uint32_t coun
 
 	if (count > 0 && !renderSurfaces)
 	{
-		errno = EINVAL;
 		DS_PROFILE_WAIT_END();
+		errno = EINVAL;
 		return false;
 	}
 
@@ -524,8 +656,8 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, uint32_t coun
 	if (!renderSurfaces[0] || !renderSurfaces[0]->renderer ||
 		!renderSurfaces[0]->renderer->swapRenderSurfaceBuffersFunc)
 	{
-		errno = EINVAL;
 		DS_PROFILE_WAIT_END();
+		errno = EINVAL;
 		return false;
 	}
 
@@ -533,8 +665,8 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, uint32_t coun
 	{
 		if (!renderSurfaces[i] || renderSurfaces[i]->renderer != renderSurfaces[0]->renderer)
 		{
-			errno = EINVAL;
 			DS_PROFILE_WAIT_END();
+			errno = EINVAL;
 			return false;
 		}
 	}
@@ -542,10 +674,10 @@ bool dsRenderSurface_swapBuffers(dsRenderSurface** renderSurfaces, uint32_t coun
 	dsRenderer* renderer = renderSurfaces[0]->renderer;
 	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Render surfaces may only be swapped on the main thread.");
 		DS_PROFILE_WAIT_END();
+		errno = EPERM;
 		return false;
 	}
 
@@ -572,9 +704,9 @@ bool dsRenderSurface_destroy(dsRenderSurface* renderSurface)
 	dsRenderer* renderer = renderSurface->renderer;
 	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
-		errno = EPERM;
 		DS_LOG_ERROR(DS_RENDER_LOG_TAG,
 			"Render surfaces may only be destroyed on the main thread.");
+		errno = EPERM;
 		DS_PROFILE_FUNC_RETURN(false);
 	}
 

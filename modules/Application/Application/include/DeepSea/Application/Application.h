@@ -200,11 +200,29 @@ DS_APPLICATION_EXPORT uint32_t dsApplication_showMessageBox(dsApplication* appli
 DS_APPLICATION_EXPORT bool dsApplication_quit(dsApplication* application, int exitCode);
 
 /**
+ * @brief Checks if a render surface format could be supported by the application.
+ *
+ * This is mainly a convenience wrapper to dsRenderSurface_handleSupportsFormat(), checking whether
+ * a format is either definitely or maybe supported. This is a less definitive check than
+ * dsApplication_supportsSurfaceFormat(), but situations like HDR support may change at runtime on
+ * certain conditions, such as toggling HDR support on a monitor or dragging a window between a
+ * monitor that supports HDR and another that does not.
+ *
+ * @param application The application.
+ * @param formatHint The hint for the render surface format.
+ * @param samples The number of anti-alias samples.
+ * @return 1 if the surface is supported, 0 if the surface is unsupported, or -1 if it can't be
+ *     determined.
+ */
+DS_APPLICATION_EXPORT int dsApplication_canSupportSurfaceFormat(const dsApplication* application,
+	const dsRenderSurfaceHint* formatHint, uint32_t samples);
+
+/**
  * @brief Checks if a render surface format is supported by the application.
  *
- * This is similar to dsRenderSurface_supportsFormat(), except the caller will not need to provide
- * an OS handle for a render surface. If the renderer implementation requires an OS surface to
- * check, a temporary hidden window will be created to check for compatiblity.
+ * This is similar to dsRenderSurface_handleSupportsFormat(), except the caller will not need to
+ * provide an OS handle for a render surface. If the renderer implementation requires an OS surface
+ * to check, a temporary hidden window will be created to check for compatiblity.
  *
  * @param application The application.
  * @param display The display to check for support on. If NULL, this will return whether any display

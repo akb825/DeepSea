@@ -41,7 +41,9 @@ TEST_F(GfxFormatTest, IsValid)
 	EXPECT_FALSE(dsGfxFormat_isValid(
 		(dsGfxFormat)(dsGfxFormat_D16 | dsGfxFormat_ETC1 | dsGfxFormat_UNorm)));
 
-	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_SurfaceColor));
+	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_SDRSurfaceColor));
+	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_HDRSurfaceColor));
+	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_PreferredSurfaceColor));
 	EXPECT_FALSE(dsGfxFormat_isValid(dsGfxFormat_SurfaceDepthStencil));
 }
 

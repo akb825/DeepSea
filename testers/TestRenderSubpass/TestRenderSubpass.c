@@ -256,7 +256,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 	dsGfxFormat colorFormat = dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm);
 	dsTextureInfo texInfo = {colorFormat, dsTextureDim_2D, preRotateWidth, preRotateHeight, 0, 1,
 		SAMPLE_COUNT};
-	dsGfxFormat combinedColorFormat = renderer->surfaceColorFormat;
+	dsGfxFormat combinedColorFormat = renderer->sdrSurfaceColorFormat;
 	dsTextureUsage offscreenUsage = dsTextureUsage_SubpassInput;
 	if (!NO_BLIT)
 		offscreenUsage |= dsTextureUsage_CopyFrom;
@@ -288,7 +288,7 @@ static bool createFramebuffer(TestRenderSubpass* testRenderSubpass)
 
 	// NOTE: Mac seems to have a problem with blitting to the framebuffer.
 	if (dsGfxFormat_surfaceBlitSupported(resourceManager, combinedColorFormat,
-		testRenderSubpass->renderer->surfaceColorFormat, dsBlitFilter_Linear) && !NO_BLIT)
+			testRenderSubpass->renderer->sdrSurfaceColorFormat, dsBlitFilter_Linear) && !NO_BLIT)
 	{
 		testRenderSubpass->combinedColor = dsRenderbuffer_create(resourceManager, allocator,
 			dsRenderbufferUsage_BlitFrom, combinedColorFormat, preRotateWidth, preRotateHeight, 1);
@@ -577,7 +577,8 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 	if (!NO_BLIT)
 		surfaceUsage |= dsRenderSurfaceUsage_BlitColorTo;
 	testRenderSubpass->window = dsWindow_create(application, allocator, "Test Render Subpass",
-		NULL, NULL, width, height, dsWindowFlags_Resizable, surfaceUsage);
+		NULL, NULL, width, height, dsWindowFlags_Resizable, surfaceUsage,
+		dsRenderSurfaceColorType_SDR);
 	if (!testRenderSubpass->window)
 	{
 		DS_LOG_ERROR_F("TestRenderSubpass", "Couldn't create window: %s", dsErrorString(errno));
@@ -603,7 +604,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator)
 
 	dsRenderPassAttachmentInfo attachments[] =
 	{
-		{dsAttachmentUsage_KeepAfter, renderer->surfaceColorFormat, 1},
+		{dsAttachmentUsage_KeepAfter, dsGfxFormat_SDRSurfaceColor, 1},
 		{dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
 			dsGfxFormat_decorate(dsGfxFormat_R8, dsGfxFormat_UNorm), SAMPLE_COUNT},
 		{dsAttachmentUsage_Clear, depthFormat, SAMPLE_COUNT},

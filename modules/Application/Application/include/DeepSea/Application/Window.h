@@ -50,11 +50,13 @@ extern "C"
  * @param height The height of the window.
  * @param flags Flags to control the behavior of the window.
  * @param renderSurfaceUsage Flags to determine how the render surface for the window will be used.
+ * @param colorType The color type used by the render surface.
  * @return The created window or NULL if an error occurred.
  */
 DS_APPLICATION_EXPORT dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsWindowInitPosition* position,
-	uint32_t width, uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage);
+	uint32_t width, uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage,
+	dsRenderSurfaceColorType colorType);
 
 /**
  * @brief Creates a surface that was delayed with the dsWindowFlags_DelaySurfaceCreate flag.
@@ -66,6 +68,50 @@ DS_APPLICATION_EXPORT dsWindow* dsWindow_create(dsApplication* application, dsAl
  * @return False if an error occurred.
  */
 DS_APPLICATION_EXPORT bool dsWindow_createSurface(dsWindow* window);
+
+/**
+ * @brief Checks whether a window is still valid.
+ *
+ * In some situations a render surface may become invalid, most commonly when using HDR formats. For
+ * example, on some systems moving a window from a monitor that supports HDR to a monitor that
+ * doesn't may leave the render surface in an invalid state.
+ *
+ * This is similar to dsRenderSurface_isValid(), but it can also check validity for a window where
+ * creation of the render surface has been delayed.
+ *
+ * @param window The window to check.
+ * @return Whether the render surface is sstill valid.
+ */
+DS_APPLICATION_EXPORT bool dsWindow_isValid(const dsWindow* window);
+
+/**
+ * @brief Checks whether a window supports a color type.
+ * @param window The window to check.
+ * @param colorType The color type to check.
+ * @return Whether the window supports the format for colorType.
+ */
+DS_APPLICATION_EXPORT bool dsWindow_supportsColorType(
+	const dsWindow* window, dsRenderSurfaceColorType colorType);
+
+/**
+ * @brief Checks whether a window supports a format.
+ * @param window The window to check.
+ * @param formatHint The hint for the render surface format.
+ * @param samples The number of anti-alias samples.
+ * @return Whether the window supports the format.
+ */
+DS_APPLICATION_EXPORT bool dsWindow_supportsFormat(
+	const dsWindow* window, const dsRenderSurfaceHint* formatHint, uint32_t samples);
+
+/**
+ * @brief Sets the color type on a window.
+ * @remark errno will be set on failure.
+ * @param window The window to set the color type on.
+ * @param colorType The color type to use.
+ * @return False if the color type couldn't be set.
+ */
+DS_APPLICATION_EXPORT bool dsWindow_setColorType(
+	dsWindow* window, dsRenderSurfaceColorType colorType);
 
 /**
  * @brief Sets the draw function for a window.

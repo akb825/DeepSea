@@ -31,7 +31,8 @@ bool dsVkRenderSurfaceData_supportsFormat(
 	const dsRenderer* renderer, VkSurfaceKHR surface, VkFormat format, VkColorSpaceKHR colorSpace);
 dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRenderer* renderer,
 	VkSurfaceKHR surface, dsVSync vsync, VkSwapchainKHR prevSwapchain, dsRenderSurfaceUsage usage,
-	const VkSurfaceCapabilitiesKHR* surfaceInfo);
+	dsGfxFormat colorFormat, bool alpha, dsRenderColorSpace colorSpace,
+	dsGfxFormat depthStencilFormat, uint32_t samples, const VkSurfaceCapabilitiesKHR* surfaceInfo);
 dsVkSurfaceResult dsVkRenderSurfaceData_acquireImage(dsVkRenderSurfaceData* surfaceData);
 
 void dsVkRenderSurfaceData_destroy(dsVkRenderSurfaceData* surfaceData);

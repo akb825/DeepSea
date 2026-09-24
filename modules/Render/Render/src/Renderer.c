@@ -72,7 +72,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 		case dsGfxSurfaceType_ColorRenderSurface:
 		{
 			dsRenderSurface* realSurface = (dsRenderSurface*)surface;
-			*outFormat = renderer->surfaceColorFormat;
+			*outFormat = realSurface->colorFormat;
 			*outDim = dsTextureDim_2D;
 			*outWidth = realSurface->preRotateWidth;
 			*outHeight = realSurface->preRotateHeight;
@@ -116,7 +116,7 @@ static bool getBlitSurfaceInfo(dsGfxFormat* outFormat, dsTextureDim* outDim, uin
 		case dsGfxSurfaceType_DepthRenderSurface:
 		{
 			dsRenderSurface* realSurface = (dsRenderSurface*)surface;
-			*outFormat = renderer->surfaceDepthStencilFormat;
+			*outFormat = realSurface->depthStencilFormat;
 			*outDim = dsTextureDim_2D;
 			*outWidth = realSurface->preRotateWidth;
 			*outHeight = realSurface->preRotateHeight;
@@ -365,8 +365,8 @@ bool dsRenderer_shaderVersionToString(char* outBuffer, uint32_t bufferSize,
 	DS_DECODE_VERSION(major, minor, patch, version->version);
 	DS_UNUSED(patch);
 
-	int result = snprintf(outBuffer, bufferSize, "%s-%u.%u", renderer->shaderLanguage, major,
-		minor);
+	int result = snprintf(
+		outBuffer, bufferSize, "%s-%u.%u", renderer->shaderLanguage, major, minor);
 	if (result < 0 || (uint32_t)result >= bufferSize)
 	{
 		errno = ESIZE;
@@ -458,8 +458,8 @@ bool dsRenderer_makePerspective(dsMatrix44f* result, const dsRenderer* renderer,
 	return true;
 }
 
-bool dsRenderer_frustumFromMatrix(dsFrustum3f* result, const dsRenderer* renderer,
-	const dsMatrix44f* matrix)
+bool dsRenderer_frustumFromMatrix(
+	dsFrustum3f* result, const dsRenderer* renderer, const dsMatrix44f* matrix)
 {
 	if (!result || !renderer || !matrix)
 	{
@@ -597,11 +597,14 @@ bool dsRenderer_endFrame(dsRenderer* renderer)
 	return true;
 }
 
-bool dsRenderer_setSurfaceFormat(
-	dsRenderer* renderer, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+bool dsRenderer_setSurfaceFormat(dsRenderer* renderer, const dsRenderSurfaceHint* sdrFormatHint,
+	const dsRenderSurfaceHint* hdrFormatHint, uint32_t samples, bool preferHDR)
 {
 	if (!renderer || !renderer->setSurfaceFormatFunc ||
-		(formatHint && dsRenderSurfaceHint_colorFormat(formatHint, dsGfxFormat_R5G6B5,
+		(sdrFormatHint && dsRenderSurfaceHint_colorFormat(sdrFormatHint, dsGfxFormat_R5G6B5,
+			dsGfxFormat_R8G8B8, dsGfxFormat_R8G8B8A8, dsGfxFormat_A2B10G10R10) ==
+				dsGfxFormat_Unknown) ||
+		(hdrFormatHint && dsRenderSurfaceHint_colorFormat(hdrFormatHint, dsGfxFormat_R5G6B5,
 			dsGfxFormat_R8G8B8, dsGfxFormat_R8G8B8A8, dsGfxFormat_A2B10G10R10) ==
 				dsGfxFormat_Unknown))
 	{
@@ -609,21 +612,46 @@ bool dsRenderer_setSurfaceFormat(
 		return false;
 	}
 
+	if (sdrFormatHint && (sdrFormatHint->colorSpace < dsRenderColorSpace_NonLinearSRGB ||
+		sdrFormatHint->colorSpace > dsRenderColorSpace_NonLinearSRGBConverting))
+	{
+		DS_LOG_ERROR(
+			DS_RENDER_LOG_TAG, "SDR render surfaces must use a non-linear sRGB color space.");
+		errno = EINVAL;
+		return false;
+	}
+
+	if (hdrFormatHint && hdrFormatHint->colorSpace < dsRenderColorSpace_ExtendedLinearSRGB)
+	{
+		DS_LOG_ERROR(
+			DS_RENDER_LOG_TAG, "HDR render surfaces must use an extended color space.");
+		errno = EINVAL;
+		return false;
+	}
+
+	if (preferHDR && !hdrFormatHint && !dsGfxFormat_isValid(renderer->hdrSurfaceColorFormat))
+	{
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Cannot prefer HDR surfaces when no HDR format is set.");
+		errno = EPERM;
+		return false;
+	}
+
 	if (samples > renderer->maxSurfaceSamples)
 	{
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximum.");
 		errno = EINVAL;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples is above the maximume.");
 		return false;
 	}
 
 	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
 	{
+		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface format may only be set on the main thread.");
 		errno = EPERM;
-		DS_LOG_ERROR(DS_RENDER_LOG_TAG, "Surface samples may only be set on the main thread.");
 		return false;
 	}
 
-	return renderer->setSurfaceFormatFunc(renderer, formatHint, dsMax(samples, 1U));
+	return renderer->setSurfaceFormatFunc(
+		renderer, sdrFormatHint, hdrFormatHint, dsMax(samples, 1U), preferHDR);
 }
 
 bool dsRenderer_setDefaultSamples(dsRenderer* renderer, uint32_t samples)
@@ -674,10 +702,31 @@ bool dsRenderer_setSamples(dsRenderer* renderer, uint32_t samples)
 	}
 
 	samples = dsMax(samples, 1U);
-	bool success = renderer->setSurfaceFormatFunc(renderer, NULL, samples);
+	bool success = renderer->setSurfaceFormatFunc(renderer, NULL, NULL, samples,
+		renderer->preferredSurfaceColorFormat == renderer->hdrSurfaceColorFormat);
 	if (!success)
 		return false;
 	return renderer->setDefaultSamplesFunc(renderer, dsMax(samples, 1U));
+}
+
+bool dsRenderer_setPreferHDRSurfaces(dsRenderer* renderer, bool preferHDR)
+{
+	if (!renderer || !renderer->setSurfaceFormatFunc)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	if (!dsThread_equal(dsThread_thisThreadID(), renderer->mainThread))
+	{
+		DS_LOG_ERROR(
+			DS_RENDER_LOG_TAG, "Surface HDR preference  may only be set on the main thread.");
+		errno = EPERM;
+		return false;
+	}
+
+	return renderer->setSurfaceFormatFunc(
+		renderer, NULL, NULL, renderer->surfaceSamples, preferHDR);
 }
 
 bool dsRenderer_setVSync(dsRenderer* renderer, dsVSync vsync)

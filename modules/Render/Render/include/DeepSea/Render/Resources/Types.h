@@ -307,18 +307,32 @@ typedef enum dsGfxFormat
 	dsGfxFormat_DecoratorMask = 0xF00000, ///< Bitmask for decorators.
 
 	/**
-	 * The color format used by render surfaces. This is considered invalid by default, but may be
-	 * used in select situations. Within the Renderer library, this may be used for offscreen
+	 * The color format used by SDR render surfaces. This is considered invalid by default, but may
+	 * be used in select situations. Within the Renderer library, this may be used for offscreen
 	 * textures, renderbuffers, and render pass attachments.
 	 */
-	dsGfxFormat_SurfaceColor = 0x10000000,
+	dsGfxFormat_SDRSurfaceColor = 0x10000000,
+
+	/**
+	 * The color format used by HDR render surfaces. This is considered invalid by default, but may
+	 * be used in select situations. Within the Renderer library, this may be used for offscreen
+	 * textures, renderbuffers, and render pass attachments.
+	 */
+	dsGfxFormat_HDRSurfaceColor = 0x20000000,
+
+	/**
+	 * The color format used by render surfaces using the preferred SDR or HDR format. This is
+	 * considered invalid by default, but may be used in select situations. Within the Renderer
+	 * library, this may be used for offscreen textures, renderbuffers, and render pass attachments.
+	 */
+	dsGfxFormat_PreferredSurfaceColor = 0x30000000,
 
 	/**
 	 * The depth/stencil format used by render surfaces. This is considered invalid by default, but
 	 * may be used in select situations. Within the Renderer library, this may be used for offscreen
 	 * textures, renderbuffers, and render pass attachments.
 	 */
-	dsGfxFormat_SurfaceDepthStencil = 0x20000000
+	dsGfxFormat_SurfaceDepthStencil = 0x40000000,
 } dsGfxFormat;
 
 /**

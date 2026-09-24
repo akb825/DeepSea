@@ -24,6 +24,9 @@
 
 #include <DeepSea/Geometry/AlignedBox2.h>
 
+#include <DeepSea/Render/RenderSurface.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
+
 static bool hasDisplayMode(const dsApplication* application, const dsDisplayMode* displayMode)
 {
 	const dsDisplayInfo* foundDisplay = NULL;
@@ -59,13 +62,16 @@ static bool hasDisplayMode(const dsApplication* application, const dsDisplayMode
 
 dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, const char* title,
 	const char* surfaceName, const dsWindowInitPosition* position, uint32_t width, uint32_t height,
-	dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage)
+	dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage,
+	dsRenderSurfaceColorType colorType)
 {
 	if (!application || (!allocator && !application->allocator) || !application->createWindowFunc ||
 		!application->destroyWindowFunc || !title || (position &&
 		(position->type < dsWindowInitPositionType_Default ||
 		position->type > dsWindowInitPositionType_DisplayFullScreenBorderless ||
-		(position->type == dsWindowInitPositionType_DisplayFullScreen && !position->displayMode))))
+		(position->type == dsWindowInitPositionType_DisplayFullScreen &&
+			!position->displayMode))) || colorType < dsRenderSurfaceColorType_SDR ||
+		colorType > dsRenderSurfaceColorType_Preferred)
 	{
 		errno = EINVAL;
 		return NULL;
@@ -78,7 +84,7 @@ dsWindow* dsWindow_create(dsApplication* application, dsAllocator* allocator, co
 		surfaceName = title;
 
 	dsWindow* window = application->createWindowFunc(application, allocator, title, surfaceName,
-		position, width, height, flags, renderSurfaceUsage);
+		position, width, height, flags, renderSurfaceUsage, colorType);
 	if (!window)
 		return NULL;
 
@@ -103,6 +109,81 @@ bool dsWindow_createSurface(dsWindow* window)
 
 	dsApplication* application = window->application;
 	return application->createWindowSurfaceFunc(application, window);
+}
+
+bool dsWindow_isValid(const dsWindow* window)
+{
+	if (!window)
+		return false;
+
+	if (window->surface)
+		return dsRenderSurface_isValid(window->surface);
+
+	const dsApplication* application = window->application;
+	dsRenderSurfaceHint formatHint;
+	if (!application || !application->windowSupportsFormatFunc ||
+		!dsRenderSurfaceHint_fromColorType(&formatHint, application->renderer, window->colorType))
+	{
+		return false;
+	}
+
+	return application->windowSupportsFormatFunc(
+		application, window, &formatHint, application->renderer->surfaceSamples);
+}
+
+bool dsWindow_supportsColorType(
+	const dsWindow* window, dsRenderSurfaceColorType colorType)
+{
+	if (!window || !window->application || !window->application->windowSupportsFormatFunc)
+		return false;
+
+	const dsApplication* application = window->application;
+	const dsRenderer* renderer = application->renderer;
+	dsRenderSurfaceHint formatHint;
+	if (!dsRenderSurfaceHint_fromColorType(&formatHint, application->renderer, colorType))
+		return false;
+
+	// Check on existing surface if possible to adjust on the fly as it's typically cheaper.
+	if (renderer->dynamicRenderSurfaceFormats && window->surface)
+	{
+		return dsRenderSurface_supportsFormat(
+			window->surface, &formatHint, renderer->surfaceSamples);
+	}
+
+	return application->windowSupportsFormatFunc(
+		application, window, &formatHint, application->renderer->surfaceSamples);
+}
+
+bool dsWindow_supportsFormat(
+	const dsWindow* window, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	if (!window || !window->application || !window->application->windowSupportsFormatFunc ||
+		!formatHint)
+	{
+		return false;
+	}
+
+	// Check on existing surface if possible to adjust on the fly as it's typically cheaper.
+	const dsApplication* application = window->application;
+	const dsRenderer* renderer = application->renderer;
+	if (renderer && renderer->dynamicRenderSurfaceFormats && window->surface)
+		return dsRenderSurface_supportsFormat(window->surface, formatHint, samples);
+
+	return application->windowSupportsFormatFunc(application, window, formatHint, samples);
+}
+
+bool dsWindow_setColorType(
+	dsWindow* window, dsRenderSurfaceColorType colorType)
+{
+	if (!window || !window->application || !window->application->setWindowColorTypeFunc ||
+		colorType < dsRenderSurfaceColorType_SDR || colorType > dsRenderSurfaceColorType_Preferred)
+	{
+		errno = EINVAL;
+		return false;
+	}
+
+	dsApplication* application = window->application;
+	return application->setWindowColorTypeFunc(application, window, colorType);
 }
 
 bool dsWindow_setDrawFunction(dsWindow* window, dsDrawWindowFunction drawFunc, void* userData,

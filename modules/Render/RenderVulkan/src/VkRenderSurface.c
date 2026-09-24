@@ -96,7 +96,7 @@ static bool transitionToPresentable(dsCommandBuffer* commandBuffer, dsVkRenderSu
 	return true;
 }
 
-int dsVkRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+int dsVkRenderSurface_handleSupportsFormat(const dsRenderer* renderer, void* displayHandle,
 	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
 	uint32_t samples)
 {
@@ -144,12 +144,40 @@ int dsVkRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHa
 
 dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
+	dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType, unsigned int widthHint,
+	unsigned int heightHint)
 {
 	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
 	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
 	VkSurfaceKHR surface;
+
+	dsGfxFormat colorFormat;
+	dsRenderColorSpace colorSpace;
+	bool alpha;
+	switch (colorType)
+	{
+		case dsRenderSurfaceColorType_SDR:
+			colorFormat = renderer->sdrSurfaceColorFormat;
+			colorSpace = renderer->sdrSurfaceColorSpace;
+			alpha = vkRenderer->sdrColorSurfaceAlpha;
+			break;
+		case dsRenderSurfaceColorType_HDR:
+			colorFormat = renderer->hdrSurfaceColorFormat;
+			colorSpace = renderer->hdrSurfaceColorSpace;
+			alpha = vkRenderer->hdrColorSurfaceAlpha;
+			break;
+		case dsRenderSurfaceColorType_Preferred:
+			colorFormat = renderer->preferredSurfaceColorFormat;
+			colorSpace = renderer->preferredSurfaceColorSpace;
+			alpha = colorFormat == renderer->hdrSurfaceColorFormat ?
+				vkRenderer->hdrColorSurfaceAlpha : vkRenderer->sdrColorSurfaceAlpha;
+			break;
+		default:
+			DS_ASSERT(false);
+			return NULL;
+	}
+
 	if (type == dsRenderSurfaceType_Direct)
 	{
 		// VkSurfaceKHR is a dispatch handle, which typically means a 64-bit integer, even on
@@ -226,6 +254,11 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	memcpy((void*)baseRenderSurface->name, name, nameLen);
 	baseRenderSurface->surfaceType = type;
 	baseRenderSurface->usage = usage;
+	baseRenderSurface->colorType = colorType;
+	baseRenderSurface->colorFormat = colorFormat;
+	baseRenderSurface->colorSpace = colorSpace;
+	baseRenderSurface->depthStencilFormat = renderer->surfaceDepthStencilFormat;
+	baseRenderSurface->samples = renderer->surfaceSamples;
 
 	renderSurface->scratchAllocator = renderer->allocator;
 	renderSurface->lifetime = NULL;
@@ -243,7 +276,8 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	}
 
 	renderSurface->surfaceData = dsVkRenderSurfaceData_create(renderSurface->scratchAllocator,
-		renderer, surface, renderer->vsync, 0, usage, &surfaceInfo);
+		renderer, surface, renderer->vsync, 0, usage, colorFormat, alpha, colorSpace,
+		baseRenderSurface->depthStencilFormat, baseRenderSurface->samples, &surfaceInfo);
 	if (!renderSurface->surfaceData)
 	{
 		dsVkRenderSurface_destroy(renderer, baseRenderSurface);
@@ -259,14 +293,65 @@ dsRenderSurface* dsVkRenderSurface_create(dsRenderer* renderer, dsAllocator* all
 	return baseRenderSurface;
 }
 
+bool dsVkRenderSurface_supportsFormat(const dsRenderer* renderer,
+	const dsRenderSurface* renderSurface, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	DS_UNUSED(samples);
+	const dsVkRenderSurface* vkRenderSurface = (const dsVkRenderSurface*)renderSurface;
+
+	dsGfxFormat colorFormat = dsVkRenderer_surfaceColorFormat(renderer, formatHint);
+	dsRenderColorSpace colorSpace = formatHint->colorSpace;
+	dsGfxFormat depthFormat = dsVkRenderer_surfaceDepthStencilFormat(renderer, formatHint);
+	if (!dsVkRenderer_canUseRenderSurfaceFormat(
+			renderer, colorFormat, colorSpace, depthFormat, false))
+	{
+		return false;
+	}
+
+	const dsVkFormatInfo* colorFormatInfo = dsVkResourceManager_getFormat(
+		renderer->resourceManager, colorFormat);
+	DS_ASSERT(colorFormatInfo);
+	return dsVkRenderSurfaceData_supportsFormat(
+		renderer, vkRenderSurface->surface, colorFormatInfo->vkFormat, dsVkColorSpace(colorSpace));
+}
+
 bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
 	unsigned int widthHint, unsigned int heightHint)
 {
 	dsVkRenderSurface* vkSurface = (dsVkRenderSurface*)renderSurface;
 	DS_VERIFY(dsSpinlock_lock(&vkSurface->lock));
 
-	dsVkDevice* device = &((dsVkRenderer*)renderer)->device;
+	dsVkRenderer* vkRenderer = (dsVkRenderer*)renderer;
+	dsVkDevice* device = &vkRenderer->device;
 	dsVkInstance* instance = &device->instance;
+
+	// Get the latest color format and color space based on the chosen color type.
+	dsGfxFormat colorFormat;
+	dsRenderColorSpace colorSpace;
+	bool alpha;
+	switch (renderSurface->colorType)
+	{
+		case dsRenderSurfaceColorType_SDR:
+			colorFormat = renderer->sdrSurfaceColorFormat;
+			colorSpace = renderer->sdrSurfaceColorSpace;
+			alpha = vkRenderer->sdrColorSurfaceAlpha;
+			break;
+		case dsRenderSurfaceColorType_HDR:
+			colorFormat = renderer->hdrSurfaceColorFormat;
+			colorSpace = renderer->hdrSurfaceColorSpace;
+			alpha = vkRenderer->hdrColorSurfaceAlpha;
+			break;
+		case dsRenderSurfaceColorType_Preferred:
+			colorFormat = renderer->preferredSurfaceColorFormat;
+			colorSpace = renderer->preferredSurfaceColorSpace;
+			alpha = colorFormat == renderer->hdrSurfaceColorFormat ?
+				vkRenderer->hdrColorSurfaceAlpha : vkRenderer->sdrColorSurfaceAlpha;
+			break;
+		default:
+			DS_ASSERT(false);
+			DS_VERIFY(dsSpinlock_unlock(&vkSurface->lock));
+			return false;
+	}
 
 	VkSurfaceCapabilitiesKHR surfaceInfo;
 	VkResult result = DS_VK_CALL(instance->vkGetPhysicalDeviceSurfaceCapabilitiesKHR)(
@@ -280,7 +365,12 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 	}
 
 	if (vkSurface->surfaceData && !vkSurface->surfaceError &&
-		vkSurface->surfaceData->vsync == renderer->vsync)
+		renderSurface->colorFormat == colorFormat &&
+		renderSurface->colorSpace == colorSpace &&
+		renderSurface->depthStencilFormat == renderer->surfaceDepthStencilFormat &&
+		renderSurface->samples == renderer->surfaceSamples &&
+		vkSurface->surfaceData->vsync == renderer->vsync &&
+		vkSurface->surfaceData->alpha == alpha)
 	{
 		uint32_t width = surfaceInfo.currentExtent.width;
 		uint32_t height = surfaceInfo.currentExtent.height;
@@ -326,7 +416,8 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 
 	dsVkRenderSurfaceData* surfaceData = dsVkRenderSurfaceData_create(vkSurface->scratchAllocator,
 		renderer, vkSurface->surface, renderer->vsync, prevSwapchain, renderSurface->usage,
-		&surfaceInfo);
+		colorFormat, alpha, colorSpace, renderer->surfaceDepthStencilFormat,
+		renderer->surfaceSamples, &surfaceInfo);
 	if (prevSwapchain)
 	{
 		DS_VK_CALL(device->vkDestroySwapchainKHR)(device->device, prevSwapchain,
@@ -342,6 +433,10 @@ bool dsVkRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurfa
 		renderSurface->preRotateWidth = vkSurface->surfaceData->preRotateWidth;
 		renderSurface->preRotateHeight = vkSurface->surfaceData->preRotateHeight;
 		renderSurface->rotation = vkSurface->surfaceData->rotation;
+		renderSurface->colorFormat = colorFormat;
+		renderSurface->colorSpace = colorSpace;
+		renderSurface->depthStencilFormat = renderer->surfaceDepthStencilFormat;
+		renderSurface->samples = renderer->surfaceSamples;
 		vkSurface->surfaceError = false;
 	}
 	else

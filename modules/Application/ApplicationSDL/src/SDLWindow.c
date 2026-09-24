@@ -22,13 +22,14 @@
 
 #include <DeepSea/ApplicationSDL/Types.h>
 
-#include <DeepSea/Render/Renderer.h>
-#include <DeepSea/Render/RenderSurface.h>
-
 #include <DeepSea/Core/Memory/Allocator.h>
 #include <DeepSea/Core/Memory/BufferAllocator.h>
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
+
+#include <DeepSea/Render/Renderer.h>
+#include <DeepSea/Render/RenderSurface.h>
+#include <DeepSea/Render/RenderSurfaceHint.h>
 
 #include <string.h>
 
@@ -271,9 +272,6 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 
 	DS_ASSERT(!window->surface);
 	sdlWindow->sdlWindow = internalWindow;
-	sdlWindow->samples = renderer->surfaceSamples;
-	sdlWindow->colorFormat = renderer->surfaceColorFormat;
-	sdlWindow->depthStencilFormat = renderer->surfaceDepthStencilFormat;
 
 	// Respect the style if previously set, which should only happen when re-creating the window.
 	// If this is required, we will need to synchronize the window state to query it from SDL.
@@ -283,8 +281,38 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 		SDL_SyncWindow(internalWindow);
 	}
 
-	if (!(flags & dsWindowFlags_DelaySurfaceCreate) &&
-		!dsSDLWindow_createSurfaceInternal(window))
+	if (flags & dsWindowFlags_DelaySurfaceCreate)
+	{
+		void* displayHandle;
+		void* windowHandle;
+		if (!dsSDLWindow_getWindowHandle(
+				&displayHandle, &windowHandle, application, sdlWindow->sdlWindow))
+		{
+			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
+			errno = EPERM;
+			return false;
+		}
+
+		// Purposefully don't check against the speicifc window handle as the location etc. may
+		// change before final creation.
+		if (!dsRenderSurface_isHandleSupported(
+				renderer, displayHandle, NULL, dsRenderSurfaceType_Window, window->colorType))
+		{
+			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Color type not supported on current target.");
+			errno = EPERM;
+			return false;
+		}
+
+		// When delayed createion, just set the SDR color format to handle the OpenGL use case of
+		// needing to set the pixel format when creating the window. This will be replaced with the
+		// true surface format when the render surface is created for the general case where it
+		// could differ per window.
+		sdlWindow->curSurfaceSamples = renderer->surfaceSamples;
+		sdlWindow->curSurfaceColorFormat = renderer->sdrSurfaceColorFormat;
+		sdlWindow->curSurfaceColorSpace = renderer->sdrSurfaceColorSpace;
+		sdlWindow->curSurfaceDepthStencilFormat = renderer->surfaceDepthStencilFormat;
+	}
+	else if (!dsSDLWindow_createSurfaceInternal(window))
 	{
 		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Couldn't create render surface.");
 		dsSDLWindow_destroyComponents(window);
@@ -343,13 +371,18 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window)
 
 	window->surface = dsRenderSurface_create(application->renderer, window->allocator,
 		sdlWindow->surfaceName, displayHandle, windowHandle, dsRenderSurfaceType_Window,
-		sdlWindow->renderSurfaceUsage, pixelWidth, pixelHeight);
+		sdlWindow->renderSurfaceUsage, window->colorType, pixelWidth, pixelHeight);
 
 	if (window->surface)
 	{
-		sdlWindow->curSurfaceWidth = window->surface->width;
-		sdlWindow->curSurfaceHeight = window->surface->height;
-		sdlWindow->curSurfaceRotation = window->surface->rotation;
+		const dsRenderSurface* surface = window->surface;
+		sdlWindow->curSurfaceWidth = surface->width;
+		sdlWindow->curSurfaceHeight = surface->height;
+		sdlWindow->curSurfaceRotation = surface->rotation;
+		sdlWindow->curSurfaceSamples = surface->samples;
+		sdlWindow->curSurfaceColorFormat = surface->colorFormat;
+		sdlWindow->curSurfaceColorSpace = surface->colorSpace;
+		sdlWindow->curSurfaceDepthStencilFormat = surface->depthStencilFormat;
 	}
 
 #if DS_APPLE
@@ -361,7 +394,8 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window)
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsWindowInitPosition* position,
-	uint32_t width, uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage)
+	uint32_t width, uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage,
+	dsRenderSurfaceColorType colorType)
 {
 	if (!allocator->freeFunc)
 	{
@@ -406,6 +440,7 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	baseWindow->allocator = allocator;
 	baseWindow->title = titleCopy;
 	baseWindow->flags = flags & ~dsWindowFlags_InitOnlyMask;
+	baseWindow->colorType = colorType;
 
 	dsVector2i sdlPosition;
 	baseWindow->style = getSdlPosition(&sdlPosition, position, application->primaryDisplay);
@@ -436,6 +471,77 @@ bool dsSDLWindow_createSurface(dsApplication* application, dsWindow* window)
 {
 	DS_UNUSED(application);
 	return window->surface || dsSDLWindow_createSurfaceInternal(window);
+}
+
+bool dsSDLWindow_supportsFormat(const dsApplication* application, const dsWindow* window,
+	const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	const dsRenderer* renderer = application->renderer;
+	const dsSDLWindow* sdlWindow = (const dsSDLWindow*)window;
+	void* displayHandle;
+	void* windowHandle;
+	if (!dsSDLWindow_getWindowHandle(
+			&displayHandle, &windowHandle, application, sdlWindow->sdlWindow))
+	{
+		return false;
+	}
+
+	return dsRenderSurface_handleSupportsFormat(
+		renderer, displayHandle, windowHandle, dsRenderSurfaceType_Window, formatHint, samples) > 0;
+}
+
+bool dsSDLWindow_setColorType(
+	dsApplication* application, dsWindow* window, dsRenderSurfaceColorType colorType)
+{
+	const dsRenderer* renderer = application->renderer;
+	const dsSDLWindow* sdlWindow = (const dsSDLWindow*)window;
+
+	if (!renderer->dynamicRenderSurfaceFormats)
+	{
+		// As of right now, the only renderer implementation that doesn't support dynamic render
+		// surface formats (OpenGL) also doesn't support HDR, so no point in implementing the logic
+		// to destroy and re-create the render surface.
+		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Setting color type currently not supported for "
+			"targets without dynamic render surface formats.");
+		errno = EPERM;
+		return false;
+	}
+
+	if (window->surface)
+	{
+		if (!dsRenderSurface_setColorType(window->surface, colorType))
+			return false;
+
+		window->colorType = colorType;
+		return true;
+	}
+
+	dsRenderSurfaceHint formatHint;
+	if (!dsRenderSurfaceHint_fromColorType(&formatHint, renderer, colorType))
+		return false;
+
+	void* displayHandle;
+	void* windowHandle;
+	if (!dsSDLWindow_getWindowHandle(
+			&displayHandle, &windowHandle, application, sdlWindow->sdlWindow))
+	{
+		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
+		errno = EPERM;
+		return false;
+	}
+
+	// Purposefully don't check against the speicifc window handle as the location etc. may
+	// change before final creation.
+	if (!dsRenderSurface_isHandleSupported(
+			renderer, displayHandle, NULL, dsRenderSurfaceType_Window, colorType))
+	{
+		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Color type not supported on current target.");
+		errno = EPERM;
+		return false;
+	}
+
+	window->colorType = colorType;
+	return true;
 }
 
 dsWindow* dsSDLWindow_getFocusWindow(const dsApplication* application)

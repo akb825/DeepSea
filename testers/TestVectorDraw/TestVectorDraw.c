@@ -434,7 +434,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator, bool srgb)
 	uint32_t targetWindowSize = dsApplication_adjustWindowSize(application, NULL, TARGET_SIZE);
 	testVectorDraw->window = dsWindow_create(application, allocator, "Test Vector Draw", NULL,
 		NULL, targetWindowSize, targetWindowSize, dsWindowFlags_Resizable,
-		dsRenderSurfaceUsage_ClientRotations);
+		dsRenderSurfaceUsage_ClientRotations, dsRenderSurfaceColorType_SDR);
 	if (!testVectorDraw->window)
 	{
 		DS_LOG_ERROR_F("TestVectorDraw", "Couldn't create window: %s", dsErrorString(errno));
@@ -447,7 +447,7 @@ static bool setup(dsApplication* application, dsAllocator* allocator, bool srgb)
 		DS_PROFILE_FUNC_RETURN(false);
 
 	dsRenderPassAttachmentInfo attachment = {dsAttachmentUsage_Clear | dsAttachmentUsage_KeepAfter,
-		renderer->surfaceColorFormat, DS_SURFACE_ANTIALIAS_SAMPLES};
+		dsGfxFormat_SDRSurfaceColor, DS_SURFACE_ANTIALIAS_SAMPLES};
 
 	dsRenderPassAttachmentRef colorAttachment = {0, true};
 	uint32_t depthStencilAttachment = DS_NO_ATTACHMENT;

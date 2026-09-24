@@ -161,153 +161,217 @@ typedef UIView ViewType;
 
 @end
 
+static void setupLayer(
+	CAMetalLayer* layer, dsGfxFormat colorFormat, dsRenderColorSpace colorSpace, bool vsync)
+{
+		MTLPixelFormat format = MTLPixelFormatBGRA8Unorm;
+		if (colorFormat == dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_SRGB))
+			format = MTLPixelFormatBGRA8Unorm_sRGB;
+		else if (colorFormat == dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm))
+			format = MTLPixelFormatRGB10A2Unorm;
+		else if (colorFormat == dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float))
+			format = MTLPixelFormatRGBA16Float;
+
+		CFStringRef colorSpaceRef;
+		bool hdr;
+		switch (colorSpace)
+		{
+			case dsRenderColorSpace_ExtendedLinearSRGB:
+				if (@available(iOS 10.0, macOS 10.12, *))
+				{
+					if (format == MTLPixelFormatRGBA16Float)
+					{
+						colorSpaceRef = kCGColorSpaceExtendedLinearSRGB;
+						hdr = true;
+					}
+					else
+					{
+						colorSpaceRef = kCGColorSpaceLinearSRGB;
+						hdr = false;
+					}
+				}
+				else
+				{
+					colorSpaceRef = kCGColorSpaceSRGB;
+					hdr = false;
+				}
+				break;
+			case dsRenderColorSpace_Rec2100PQ:
+				if (@available(iOS 14.0, macOS 11.0, *))
+				{
+					colorSpaceRef = kCGColorSpaceITUR_2100_PQ;
+					hdr = true;
+				}
+				else if (@available(iOS 12.6, macOS 10.14.6, *))
+				{
+					DS_PUSH_DEPRECATION_WARNINGS
+					colorSpaceRef = kCGColorSpaceITUR_2020_PQ_EOTF;
+					hdr = true;
+					DS_POP_DEPRECATION_WARNINGS
+				}
+				else
+				{
+					colorSpaceRef = kCGColorSpaceSRGB;
+					hdr = false;
+				}
+				break;
+			default:
+				colorSpaceRef = kCGColorSpaceSRGB;
+				hdr = false;
+				break;
+		}
+
+		layer.pixelFormat = format;
+		layer.colorspace = CGColorSpaceCreateWithName(colorSpaceRef);
+		if (@available(iOS 16.0, *))
+			layer.wantsExtendedDynamicRangeContent = hdr;
+#if DS_MAC
+		if (@available(macOS 10.13, *))
+			layer.displaySyncEnabled = vsync;
+#else
+		DS_UNUSED(vsync);
+#endif
+}
+
 static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSurface)
 {
 	dsMTLRenderer* mtlRenderer = (dsMTLRenderer*)renderer;
+	dsResourceManager* resourceManager = renderer->resourceManager;
 	id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
 	dsMTLRenderSurface* mtlRenderSurface = (dsMTLRenderSurface*)renderSurface;
-	if (renderer->surfaceSamples > 1)
+
+	if (mtlRenderSurface->resolveSurface)
 	{
-		id<MTLTexture> resolveSurface = (__bridge id<MTLTexture>)mtlRenderSurface->resolveSurface;
-		if (!resolveSurface || resolveSurface.width != renderSurface->width ||
-			resolveSurface.height != renderSurface->height)
-		{
-			if (mtlRenderSurface->resolveSurface)
-			{
-				CFRelease(mtlRenderSurface->resolveSurface);
-				mtlRenderSurface->resolveSurface = NULL;
-			}
-
-			MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(
-				renderer->resourceManager, renderer->surfaceColorFormat);
-			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
-			if (!descriptor)
-			{
-				errno = ENOMEM;
-				return false;
-			}
-
-			descriptor.textureType = MTLTextureType2DMultisample;
-			descriptor.pixelFormat = pixelFormat;
-			descriptor.width = renderSurface->width;
-			descriptor.height = renderSurface->height;
-			descriptor.sampleCount = renderer->surfaceSamples;
-			if (@available(iOS 9.0, *))
-			{
-				descriptor.storageMode = MTLStorageModePrivate;
-				descriptor.usage = MTLTextureUsageRenderTarget;
-			}
-
-			resolveSurface = [device newTextureWithDescriptor: descriptor];
-			if (!resolveSurface)
-			{
-				errno = ENOMEM;
-				return false;
-			}
-
-			mtlRenderSurface->resolveSurface = CFBridgingRetain(resolveSurface);
-		}
+		CFRelease(mtlRenderSurface->resolveSurface);
+		mtlRenderSurface->resolveSurface = NULL;
 	}
 
-	if (renderer->surfaceDepthStencilFormat != dsGfxFormat_Unknown)
+	if (mtlRenderSurface->depthSurface)
 	{
-		id<MTLTexture> depthSurface = (__bridge id<MTLTexture>)mtlRenderSurface->depthSurface;
+		CFRelease(mtlRenderSurface->depthSurface);
+		mtlRenderSurface->depthSurface = NULL;
+	}
 
-		if (!depthSurface || depthSurface.width != renderSurface->width ||
-			depthSurface.height != renderSurface->height)
+	if (mtlRenderSurface->stencilSurface)
+	{
+		CFRelease(mtlRenderSurface->stencilSurface);
+		mtlRenderSurface->stencilSurface = NULL;
+	}
+
+	if (renderSurface->samples > 1)
+	{
+		MTLPixelFormat pixelFormat = dsMTLResourceManager_getPixelFormat(
+			resourceManager, renderSurface->colorFormat);
+		MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
+		if (!descriptor)
 		{
-			MTLPixelFormat depthPixelFormat = dsMTLResourceManager_getPixelFormat(
-				renderer->resourceManager, renderer->surfaceDepthStencilFormat);
-			MTLPixelFormat stencilPixelFormat = depthPixelFormat;
-			if (depthPixelFormat == MTLPixelFormatInvalid)
+			errno = ENOMEM;
+			return false;
+		}
+
+		descriptor.textureType = MTLTextureType2DMultisample;
+		descriptor.pixelFormat = pixelFormat;
+		descriptor.width = renderSurface->width;
+		descriptor.height = renderSurface->height;
+		descriptor.sampleCount = renderSurface->samples;
+		if (@available(iOS 9.0, *))
+		{
+			descriptor.storageMode = MTLStorageModePrivate;
+			descriptor.usage = MTLTextureUsageRenderTarget;
+		}
+
+		id<MTLTexture> resolveSurface = [device newTextureWithDescriptor: descriptor];
+		if (!resolveSurface)
+		{
+			errno = ENOMEM;
+			return false;
+		}
+
+		mtlRenderSurface->resolveSurface = CFBridgingRetain(resolveSurface);
+	}
+
+	if (renderSurface->depthStencilFormat != dsGfxFormat_Unknown)
+	{
+		MTLPixelFormat depthPixelFormat = dsMTLResourceManager_getPixelFormat(
+			resourceManager, renderSurface->depthStencilFormat);
+		MTLPixelFormat stencilPixelFormat = depthPixelFormat;
+		if (depthPixelFormat == MTLPixelFormatInvalid)
+		{
+			// Need to have separate depth and stencil surfaces.
+			switch (renderSurface->depthStencilFormat)
 			{
-				// Need to have separate depth and stencil surfaces.
-				switch (renderer->surfaceDepthStencilFormat)
-				{
 #if DS_MAC
-					case dsGfxFormat_D16S8:
-						if (@available(macOS 10.12, *))
-						{
-							depthPixelFormat = MTLPixelFormatDepth16Unorm;
-							stencilPixelFormat = MTLPixelFormatStencil8;
-						}
-						break;
-#endif
-					case dsGfxFormat_D32S8_Float:
-						depthPixelFormat = MTLPixelFormatDepth32Float;
+				case dsGfxFormat_D16S8:
+					if (@available(macOS 10.12, *))
+					{
+						depthPixelFormat = MTLPixelFormatDepth16Unorm;
 						stencilPixelFormat = MTLPixelFormatStencil8;
-						break;
-					default:
-						DS_ASSERT(false);
-						break;
-				}
+					}
+					break;
+#endif
+				case dsGfxFormat_D32S8_Float:
+					depthPixelFormat = MTLPixelFormatDepth32Float;
+					stencilPixelFormat = MTLPixelFormatStencil8;
+					break;
+				default:
+					DS_ASSERT(false);
+					break;
 			}
-			else
+		}
+		else
+		{
+			switch (renderSurface->depthStencilFormat)
 			{
-				switch (renderer->surfaceDepthStencilFormat)
-				{
-					case dsGfxFormat_D16:
-					case dsGfxFormat_X8D24:
-					case dsGfxFormat_D32_Float:
-						stencilPixelFormat = MTLPixelFormatInvalid;
-						break;
-					default:
-						break;
-				}
+				case dsGfxFormat_D16:
+				case dsGfxFormat_X8D24:
+				case dsGfxFormat_D32_Float:
+					stencilPixelFormat = MTLPixelFormatInvalid;
+					break;
+				default:
+					break;
 			}
+		}
 
-			if (mtlRenderSurface->depthSurface)
-			{
-				CFRelease(mtlRenderSurface->depthSurface);
-				mtlRenderSurface->depthSurface = NULL;
-			}
-			if (mtlRenderSurface->stencilSurface)
-			{
-				CFRelease(mtlRenderSurface->stencilSurface);
-				mtlRenderSurface->stencilSurface = NULL;
-			}
+		MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
+		if (!descriptor)
+		{
+			errno = ENOMEM;
+			return false;
+		}
 
-			MTLTextureDescriptor* descriptor = [MTLTextureDescriptor new];
-			if (!descriptor)
+		if (renderSurface->samples > 1)
+			descriptor.textureType = MTLTextureType2DMultisample;
+		else
+			descriptor.textureType = MTLTextureType2D;
+		descriptor.pixelFormat = depthPixelFormat;
+		descriptor.width = renderSurface->width;
+		descriptor.height = renderSurface->height;
+		descriptor.sampleCount = renderSurface->samples;
+		if (@available(iOS 9.0, *))
+		{
+			descriptor.storageMode = MTLStorageModePrivate;
+			descriptor.usage = MTLTextureUsageRenderTarget;
+		}
+
+		id<MTLTexture> depthSurface = [device newTextureWithDescriptor: descriptor];
+		if (!depthSurface)
+		{
+			errno = ENOMEM;
+			return false;
+		}
+
+		mtlRenderSurface->depthSurface = CFBridgingRetain(depthSurface);
+
+		if (stencilPixelFormat == depthPixelFormat)
+			mtlRenderSurface->stencilSurface = CFBridgingRetain(depthSurface);
+		else if (stencilPixelFormat != MTLPixelFormatInvalid)
+		{
+			descriptor.pixelFormat = stencilPixelFormat;
+			id<MTLTexture> stencilSurface = [device newTextureWithDescriptor: descriptor];
+			if (!stencilSurface)
 			{
 				errno = ENOMEM;
 				return false;
-			}
-
-			if (renderer->surfaceSamples > 1)
-				descriptor.textureType = MTLTextureType2DMultisample;
-			else
-				descriptor.textureType = MTLTextureType2D;
-			descriptor.pixelFormat = depthPixelFormat;
-			descriptor.width = renderSurface->width;
-			descriptor.height = renderSurface->height;
-			descriptor.sampleCount = renderer->surfaceSamples;
-			if (@available(iOS 9.0, *))
-			{
-				descriptor.storageMode = MTLStorageModePrivate;
-				descriptor.usage = MTLTextureUsageRenderTarget;
-			}
-
-			depthSurface = [device newTextureWithDescriptor: descriptor];
-			if (!depthSurface)
-			{
-				errno = ENOMEM;
-				return false;
-			}
-
-			mtlRenderSurface->depthSurface = CFBridgingRetain(depthSurface);
-
-			if (stencilPixelFormat == depthPixelFormat)
-				mtlRenderSurface->stencilSurface = CFBridgingRetain(depthSurface);
-			else if (stencilPixelFormat != MTLPixelFormatInvalid)
-			{
-				descriptor.pixelFormat = stencilPixelFormat;
-				id<MTLTexture> stencilSurface = [device newTextureWithDescriptor: descriptor];
-				if (!stencilSurface)
-				{
-					errno = ENOMEM;
-					return false;
-				}
 			}
 		}
 	}
@@ -315,7 +379,7 @@ static bool createExtraSurfaces(dsRenderer* renderer, dsRenderSurface* renderSur
 	return true;
 }
 
-int dsMTLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayHandle,
+int dsMTLRenderSurface_handleSupportsFormat(const dsRenderer* renderer, void* displayHandle,
 	void* osHandle, dsRenderSurfaceType type, const dsRenderSurfaceHint* formatHint,
 	uint32_t samples)
 {
@@ -347,7 +411,8 @@ int dsMTLRenderSurface_supportsFormat(const dsRenderer* renderer, void* displayH
 
 dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* allocator,
 	const char* name, void* displayHandle, void* osHandle, dsRenderSurfaceType type,
-	dsRenderSurfaceUsage usage, unsigned int widthHint, unsigned int heightHint)
+	dsRenderSurfaceUsage usage, dsRenderSurfaceColorType colorType, unsigned int widthHint,
+	unsigned int heightHint)
 {
 	DS_UNUSED(displayHandle);
 	DS_UNUSED(widthHint);
@@ -358,8 +423,8 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		id<MTLDevice> device = (__bridge id<MTLDevice>)mtlRenderer->device;
 		if (type == dsRenderSurfaceType_Pixmap)
 		{
-			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "Pixmap not supported for Metal.");
+			errno = EINVAL;
 			return NULL;
 		}
 
@@ -367,10 +432,31 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		if (!handleObject || (![handleObject isKindOfClass: [ViewType class]] &&
 				![handleObject isKindOfClass: [CAMetalLayer class]]))
 		{
-			errno = EINVAL;
 			DS_LOG_ERROR(DS_RENDER_METAL_LOG_TAG, "An NSView/UIView or CAMetalLayer must be passed "
 				"as the OS handle to create a Metal render surface.");
+			errno = EINVAL;
 			return NULL;
+		}
+
+		dsGfxFormat colorFormat;
+		dsRenderColorSpace colorSpace;
+		switch (colorType)
+		{
+			case dsRenderSurfaceColorType_SDR:
+				colorFormat = renderer->sdrSurfaceColorFormat;
+				colorSpace = renderer->sdrSurfaceColorSpace;
+				break;
+			case dsRenderSurfaceColorType_HDR:
+				colorFormat = renderer->hdrSurfaceColorFormat;
+				colorSpace = renderer->hdrSurfaceColorSpace;
+				break;
+			case dsRenderSurfaceColorType_Preferred:
+				colorFormat = renderer->preferredSurfaceColorFormat;
+				colorSpace = renderer->preferredSurfaceColorSpace;
+				break;
+			default:
+				DS_ASSERT(false);
+				return NULL;
 		}
 
 		ViewType* view = NULL;
@@ -401,81 +487,7 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 			layer = (CAMetalLayer*)handleObject;
 
 		layer.device = device;
-
-		MTLPixelFormat format = MTLPixelFormatBGRA8Unorm;
-		if (renderer->surfaceColorFormat ==
-			dsGfxFormat_decorate(dsGfxFormat_B8G8R8A8, dsGfxFormat_SRGB))
-		{
-			format = MTLPixelFormatBGRA8Unorm_sRGB;
-		}
-		else if (renderer->surfaceColorFormat ==
-			dsGfxFormat_decorate(dsGfxFormat_A2B10G10R10, dsGfxFormat_UNorm))
-		{
-			format = MTLPixelFormatRGB10A2Unorm;
-		}
-		else if (renderer->surfaceColorFormat ==
-			dsGfxFormat_decorate(dsGfxFormat_R16G16B16A16, dsGfxFormat_Float))
-		{
-			format = MTLPixelFormatRGBA16Float;
-		}
-
-		CFStringRef colorSpace;
-		bool hdr;
-		switch (renderer->surfaceColorSpace)
-		{
-			case dsRenderColorSpace_ExtendedLinearSRGB:
-				if (@available(iOS 10.0, macOS 10.12, *))
-				{
-					if (format == MTLPixelFormatRGBA16Float)
-					{
-						colorSpace = kCGColorSpaceExtendedLinearSRGB;
-						hdr = true;
-					}
-					else
-					{
-						colorSpace = kCGColorSpaceLinearSRGB;
-						hdr = false;
-					}
-				}
-				else
-				{
-					colorSpace = kCGColorSpaceSRGB;
-					hdr = false;
-				}
-				break;
-			case dsRenderColorSpace_Rec2100PQ:
-				if (@available(iOS 14.0, macOS 11.0, *))
-				{
-					colorSpace = kCGColorSpaceITUR_2100_PQ;
-					hdr = true;
-				}
-				else if (@available(iOS 12.6, macOS 10.14.6, *))
-				{
-					DS_PUSH_DEPRECATION_WARNINGS
-					colorSpace = kCGColorSpaceITUR_2020_PQ_EOTF;
-					hdr = true;
-					DS_POP_DEPRECATION_WARNINGS
-				}
-				else
-				{
-					colorSpace = kCGColorSpaceSRGB;
-					hdr = false;
-				}
-				break;
-			default:
-				colorSpace = kCGColorSpaceSRGB;
-				hdr = false;
-				break;
-		}
-
-		layer.pixelFormat = format;
-		layer.colorspace = CGColorSpaceCreateWithName(colorSpace);
-#if DS_MAC
-		if (@available(macOS 10.13, *))
-			layer.displaySyncEnabled = renderer->vsync != dsVSync_Disabled;
-#endif
-		if (@available(iOS 16.0, *))
-			layer.wantsExtendedDynamicRangeContent = hdr;
+		setupLayer(layer, colorFormat, colorSpace, renderer->vsync != dsVSync_Disabled);
 
 		size_t nameLen = strlen(name) + 1;
 		size_t fullSize = sizeof(dsMTLRenderSurface);
@@ -508,6 +520,12 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 		baseRenderSurface->preRotateHeight = baseRenderSurface->height;
 		baseRenderSurface->rotation = dsRenderSurfaceRotation_0;
 
+		baseRenderSurface->colorType = colorType;
+		baseRenderSurface->colorFormat = colorFormat;
+		baseRenderSurface->colorSpace = colorSpace;
+		baseRenderSurface->depthStencilFormat = renderer->surfaceDepthStencilFormat;
+		baseRenderSurface->samples = renderer->surfaceSamples;
+
 		DS_VERIFY(dsSpinlock_initialize(&renderSurface->lock));
 		renderSurface->view = CFBridgingRetain(view);
 		renderSurface->layer = CFBridgingRetain(layer);
@@ -536,6 +554,18 @@ dsRenderSurface* dsMTLRenderSurface_create(dsRenderer* renderer, dsAllocator* al
 	}
 }
 
+bool dsMTLRenderSurface_supportsFormat(const dsRenderer* renderer,
+	const dsRenderSurface* renderSurface, const dsRenderSurfaceHint* formatHint, uint32_t samples)
+{
+	DS_UNUSED(renderSurface);
+	DS_UNUSED(samples);
+
+	dsGfxFormat colorFormat = dsMTLRenderer_surfaceColorFormat(formatHint);
+	dsGfxFormat depthFormat = dsMTLRenderer_surfaceDepthStencilFormat(renderer, formatHint);
+	return dsMTLRenderer_canUseRenderSurfaceFormat(
+		renderer, colorFormat, formatHint->colorSpace, depthFormat, false);
+}
+
 bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurface,
 	unsigned int widthHint, unsigned int heightHint)
 {
@@ -543,30 +573,70 @@ bool dsMTLRenderSurface_update(dsRenderer* renderer, dsRenderSurface* renderSurf
 	DS_UNUSED(heightHint);
 	@autoreleasepool
 	{
-		DS_UNUSED(renderer);
+		// Get the latest color format and color space based on the chosen color type.
+		dsGfxFormat colorFormat;
+		dsRenderColorSpace colorSpace;
+		switch (renderSurface->colorType)
+		{
+			case dsRenderSurfaceColorType_SDR:
+				colorFormat = renderer->sdrSurfaceColorFormat;
+				colorSpace = renderer->sdrSurfaceColorSpace;
+				break;
+			case dsRenderSurfaceColorType_HDR:
+				colorFormat = renderer->hdrSurfaceColorFormat;
+				colorSpace = renderer->hdrSurfaceColorSpace;
+				break;
+			case dsRenderSurfaceColorType_Preferred:
+				colorFormat = renderer->preferredSurfaceColorFormat;
+				colorSpace = renderer->preferredSurfaceColorSpace;
+				break;
+			default:
+				DS_ASSERT(false);
+				return false;
+		}
+
 		dsMTLRenderSurface* mtlRenderSurface = (dsMTLRenderSurface*)renderSurface;
 		CAMetalLayer* layer = (__bridge CAMetalLayer*)mtlRenderSurface->layer;
 		CGSize size = layer.drawableSize;
-		renderSurface->width = (uint32_t)size.width;
-		renderSurface->height = (uint32_t)size.height;
-		renderSurface->preRotateWidth = renderSurface->width;
-		renderSurface->preRotateHeight = renderSurface->height;
-
+		uint32_t width = (uint32_t)size.width;
+		uint32_t height = (uint32_t)size.height;
+		bool vsync = renderer->vsync != dsVSync_Disabled;
 #if DS_MAC
+		bool prevVSync = vsync;
 		if (@available(macOS 10.13, *))
-		{
-			bool vsync = renderer->vsync != dsVSync_Disabled;
-			if (layer.displaySyncEnabled != vsync)
-				layer.displaySyncEnabled = vsync;
-		}
+			prevVSync = layer.displaySyncEnabled;
 #endif
 
+		if (renderSurface->width == width && renderSurface->height == height &&
+			renderSurface->colorFormat == colorFormat && renderSurface->colorSpace == colorSpace &&
+			renderSurface->depthStencilFormat == renderer->surfaceDepthStencilFormat &&
+			renderSurface->samples == renderer->surfaceSamples)
+		{
+#if DS_MAC
+			if (@available(macOS 10.13, *))
+			{
+				if (prevVSync != vsync)
+					layer.displaySyncEnabled = vsync;
+			}
+#endif
+			return false;
+		}
+
+		renderSurface->width = renderSurface->preRotateWidth = width;
+		renderSurface->height = renderSurface->preRotateHeight = height;
+		renderSurface->preRotateHeight = renderSurface->height;
+		renderSurface->colorFormat = colorFormat;
+		renderSurface->colorSpace = colorSpace;
+		renderSurface->depthStencilFormat = renderer->surfaceDepthStencilFormat;
+		renderSurface->samples = renderer->surfaceSamples;
+
+		setupLayer(layer, colorFormat, colorSpace, vsync);
 		return createExtraSurfaces(renderer, renderSurface);
 	}
 }
 
-bool dsMTLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface)
+bool dsMTLRenderSurface_beginDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
 {
 	DS_UNUSED(renderer);
 	DS_UNUSED(commandBuffer);
@@ -590,8 +660,8 @@ bool dsMTLRenderSurface_beginDraw(dsRenderer* renderer, dsCommandBuffer* command
 	}
 }
 
-bool dsMTLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBuffer,
-	const dsRenderSurface* renderSurface)
+bool dsMTLRenderSurface_endDraw(
+	dsRenderer* renderer, dsCommandBuffer* commandBuffer, const dsRenderSurface* renderSurface)
 {
 	DS_UNUSED(renderer);
 	DS_UNUSED(commandBuffer);
@@ -599,8 +669,8 @@ bool dsMTLRenderSurface_endDraw(dsRenderer* renderer, dsCommandBuffer* commandBu
 	return true;
 }
 
-bool dsMTLRenderSurface_swapBuffers(dsRenderer* renderer, dsRenderSurface** renderSurfaces,
-	uint32_t count)
+bool dsMTLRenderSurface_swapBuffers(
+	dsRenderer* renderer, dsRenderSurface** renderSurfaces, uint32_t count)
 {
 	@autoreleasepool
 	{

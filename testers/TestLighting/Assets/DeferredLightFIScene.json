@@ -481,7 +481,7 @@
 				},
 				{
 					"usage": ["KeepAfter"],
-					"format": "SurfaceColor",
+					"format": "SDRSurfaceColor",
 					"decoration": "Unset",
 					"samples": 1
 				}

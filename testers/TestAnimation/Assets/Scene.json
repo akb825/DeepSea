@@ -99,7 +99,7 @@
 			[
 				{
 					"usage": ["Clear"],
-					"format": "SurfaceColor",
+					"format": "SDRSurfaceColor",
 					"decoration": "UNorm",
 					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 0.0]},
 					"samples": "Surface"

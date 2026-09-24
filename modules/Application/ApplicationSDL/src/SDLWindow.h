@@ -26,11 +26,12 @@ typedef struct dsSDLWindow
 	dsWindow window;
 	const char* surfaceName;
 	SDL_Window* sdlWindow;
-	uint32_t samples;
-	dsGfxFormat colorFormat;
-	dsGfxFormat depthStencilFormat;
 	uint32_t curSurfaceWidth;
 	uint32_t curSurfaceHeight;
+	uint32_t curSurfaceSamples;
+	dsGfxFormat curSurfaceColorFormat;
+	dsRenderColorSpace curSurfaceColorSpace;
+	dsGfxFormat curSurfaceDepthStencilFormat;
 	dsRenderSurfaceRotation curSurfaceRotation;
 	dsRenderSurfaceUsage renderSurfaceUsage;
 } dsSDLWindow;
@@ -47,8 +48,13 @@ bool dsSDLWindow_createSurfaceInternal(dsWindow* window);
 
 dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	const char* title, const char* surfaceName, const dsWindowInitPosition* position,
-	uint32_t width, uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage);
+	uint32_t width, uint32_t height, dsWindowFlags flags, dsRenderSurfaceUsage renderSurfaceUsage,
+	dsRenderSurfaceColorType colorType);
 bool dsSDLWindow_createSurface(dsApplication* application, dsWindow* window);
+bool dsSDLWindow_supportsFormat(const dsApplication* application, const dsWindow* window,
+	const dsRenderSurfaceHint* formatHint, uint32_t samples);
+bool dsSDLWindow_setColorType(
+	dsApplication* application, dsWindow* window, dsRenderSurfaceColorType colorType);
 dsWindow* dsSDLWindow_getFocusWindow(const dsApplication* application);
 bool dsSDLWindow_setTitle(dsApplication* application, dsWindow* window, const char* title);
 bool dsSDLWindow_setDisplayMode(
@@ -66,9 +72,9 @@ bool dsSDLWindow_restore(dsApplication* application, dsWindow* window);
 bool dsSDLWindow_setGrabbedInput(dsApplication* application, dsWindow* window, bool grab);
 bool dsSDLWindow_setResizable(dsApplication* application, dsWindow* window, bool resizable);
 bool dsSDLWindow_raise(dsApplication* application, dsWindow* window);
-bool dsSDLWindow_beginTextInput(dsApplication* applicatin, dsWindow* window,
+bool dsSDLWindow_beginTextInput(dsApplication* application, dsWindow* window,
 	dsWindowTextInputType inputType, dsWindowTextInputFlags inputFlags);
-bool dsSDLWindow_endTextInput(dsApplication* applicatin, dsWindow* window);
-bool dsSDLWindow_setTextInputArea(dsApplication* applicatin, dsWindow* window,
+bool dsSDLWindow_endTextInput(dsApplication* application, dsWindow* window);
+bool dsSDLWindow_setTextInputArea(dsApplication* application, dsWindow* window,
 	const dsAlignedBox2i* bounds, uint32_t cursorOffset);
 bool dsSDLWindow_destroy(dsApplication* application, dsWindow* window);

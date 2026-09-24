@@ -95,8 +95,10 @@ static const dsGfxFormat textureFormatMap[] =
 	dsGfxFormat_PVRTC1_RGBA_4BPP,
 	dsGfxFormat_PVRTC2_RGBA_2BPP,
 	dsGfxFormat_PVRTC2_RGBA_4BPP,
-	dsGfxFormat_Unknown,
-	dsGfxFormat_Unknown
+	dsGfxFormat_SDRSurfaceColor,
+	dsGfxFormat_HDRSurfaceColor,
+	dsGfxFormat_PreferredSurfaceColor,
+	dsGfxFormat_SurfaceDepthStencil
 };
 
 static_assert(DS_ARRAY_SIZE(textureFormatMap) == static_cast<uint32_t>(TextureFormat::MAX) + 1,
@@ -176,11 +178,6 @@ dsGfxFormat convert(
 	{
 		return dsGfxFormat_Unknown;
 	}
-
-	if (format == TextureFormat::SurfaceColor)
-		return dsGfxFormat_SurfaceColor;
-	else if (format == TextureFormat::SurfaceDepthStencil)
-		return dsGfxFormat_SurfaceDepthStencil;
 
 	dsGfxFormat gfxFormat = dsGfxFormat_decorate(
 		textureFormatMap[formatIndex], formatDecorationMap[decorationIndex]);
