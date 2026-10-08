@@ -371,7 +371,12 @@ typedef enum dsWindowChangeFlags
 	dsWindowChangeFlags_SurfaceFormat = 0x80, ///< The format of the render surface has changed.
 	dsWindowChangeFlags_ContentScale = 0x100, ///< The content scale of the window has changed.
 	dsWindowChangeFlags_SafeArea = 0x200,     ///< The safe area within the window has changed.
-	dsWindowChangeFlags_Display = 0x400       ///< The display of the window has changed.
+	dsWindowChangeFlags_Display = 0x400,      ///< The display of the window has changed.
+	/**
+	 * The HDR properties of the window has changed, specifically sdrWhiteLevel and
+	 * maxHDRChannelValue.
+	 */
+	dsWindowChangeFlags_HDR = 0x800
 } dsWindowChangeFlags;
 
 /**
@@ -2083,6 +2088,23 @@ typedef struct dsWindow
 	 * coordinates used by width and height and may differ from the pixel values.
 	 */
 	dsAlignedBox2i safeArea;
+
+	/**
+	 * @brief The white level for SDR content as a multiplier of a reference luminance.
+	 *
+	 * This may be used to determine how bright a color channel value of 1.0 is. The reference
+	 * luminance is often (though not guaranteed to be) 80 cd/m^2. Some platforms don't carry this
+	 * information, in which case it will be set to 1.
+	 */
+	float sdrWhiteLevel;
+
+	/**
+	 * @brief The maximum value for a color channel for HDR content.
+	 *
+	 * This may be multiplied by sdrWhiteLevel to find the maximum brightness relative to the
+	 * reference. The value is in linear color space.
+	 */
+	float maxHDRChannelValue;
 } dsWindow;
 
 /**

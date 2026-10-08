@@ -242,6 +242,20 @@ bool dsSDLWindow_getWindowHandle(void** outDisplayHandle, void** outWindowHandle
 	return *outWindowHandle != NULL;
 }
 
+bool dsSDLWindow_getHDRProperties(
+	float* outSDRWhiteLevel, float* outMaxHDRChannelValue, SDL_Window* internalWindow)
+{
+	SDL_PropertiesID windowProps = SDL_GetWindowProperties(internalWindow);
+	if (!windowProps)
+		return false;
+
+	*outSDRWhiteLevel = SDL_GetFloatProperty(
+		windowProps, SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT, 1.0f);
+	*outMaxHDRChannelValue = SDL_GetFloatProperty(
+		windowProps, SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 1.0f);
+	return true;
+}
+
 bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, uint32_t width,
 	uint32_t height, dsWindowFlags flags)
 {
@@ -332,6 +346,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 
 	window->display = dsApplication_findDisplay(
 		application, SDL_GetDisplayForWindow(internalWindow));
+	DS_VERIFY(dsSDLWindow_getHDRProperties(
+		&window->sdrWhiteLevel, &window->maxHDRChannelValue, internalWindow));
 	return true;
 }
 

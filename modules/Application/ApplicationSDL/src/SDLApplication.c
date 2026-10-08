@@ -602,6 +602,16 @@ static bool updateWindowState(
 		window->safeArea = safeBounds;
 	}
 
+	float sdrWhiteLevel, maxHDRChannelValue;
+	if (!dsSDLWindow_getHDRProperties(&sdrWhiteLevel, &maxHDRChannelValue, internalWindow) ||
+		sdrWhiteLevel != window->sdrWhiteLevel ||
+		maxHDRChannelValue != window->maxHDRChannelValue)
+	{
+		changeFlags |= dsWindowChangeFlags_HDR;
+		window->sdrWhiteLevel = sdrWhiteLevel;
+		window->maxHDRChannelValue = maxHDRChannelValue;
+	}
+
 	if (changeFlags == 0)
 		return false;
 
@@ -777,6 +787,7 @@ static bool convertEvent(
 		case SDL_EVENT_WINDOW_SAFE_AREA_CHANGED:
 		case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
 		case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+		case SDL_EVENT_WINDOW_HDR_STATE_CHANGED:
 		{
 #if DS_ANDROID
 			if (sdlEvent->type == SDL_EVENT_WINDOW_RESTORED)
