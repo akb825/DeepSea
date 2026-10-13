@@ -586,6 +586,9 @@ static bool updateWindowState(
 			sdlWindow->curSurfaceColorFormat = surface->colorFormat;
 			sdlWindow->curSurfaceColorSpace = surface->colorSpace;
 			sdlWindow->curSurfaceDepthStencilFormat = surface->depthStencilFormat;
+
+			// Make sure the display mode is up to date.
+			dsSDLWindow_setSDLDisplayMode(application, window, &window->displayMode);
 		}
 	}
 

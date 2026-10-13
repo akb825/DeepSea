@@ -27,6 +27,8 @@
 #include <DeepSea/Core/Assert.h>
 #include <DeepSea/Core/Log.h>
 
+#include <DeepSea/Math/Core.h>
+
 #include <DeepSea/Render/Renderer.h>
 #include <DeepSea/Render/RenderSurface.h>
 #include <DeepSea/Render/RenderSurfaceHint.h>
@@ -96,22 +98,154 @@ static dsWindowStyle getSdlPosition(dsVector2i* outSdlPosition,
 	}
 }
 
-static bool findSDLDisplayMode(SDL_DisplayMode* outMode, const dsDisplayMode* displayMode)
+static SDL_PixelFormat gfxFormatToPixelFormat(dsGfxFormat format)
 {
-	const SDL_DisplayMode* defaultMode = SDL_GetDesktopDisplayMode(
-		(uint32_t)displayMode->displayID);
-	if (!defaultMode)
+	switch (format & dsGfxFormat_StandardMask)
 	{
-		DS_LOG_ERROR_F(
-			DS_APPLICATION_SDL_LOG_TAG, "Couldn't get default display mode: %s", SDL_GetError());
-		errno = EPERM;
+		case dsGfxFormat_R4G4B4A4:
+			return SDL_PIXELFORMAT_RGBA4444;
+		case dsGfxFormat_B4G4R4A4:
+			return SDL_PIXELFORMAT_BGRA4444;
+		case dsGfxFormat_A4R4G4B4:
+			return SDL_PIXELFORMAT_ARGB4444;
+		case dsGfxFormat_R5G6B5:
+			return SDL_PIXELFORMAT_RGB565;
+		case dsGfxFormat_B5G6R5:
+			return SDL_PIXELFORMAT_BGR565;
+		case dsGfxFormat_R5G5B5A1:
+			return SDL_PIXELFORMAT_RGBA5551;
+		case dsGfxFormat_B5G5R5A1:
+			return SDL_PIXELFORMAT_BGRA5551;
+		case dsGfxFormat_A1R5G5B5:
+			return SDL_PIXELFORMAT_ARGB1555;
+		case dsGfxFormat_R8G8B8:
+			return SDL_PIXELFORMAT_XRGB8888;
+		case dsGfxFormat_B8G8R8:
+			return SDL_PIXELFORMAT_XBGR8888;
+		case dsGfxFormat_R8G8B8A8:
+			return SDL_PIXELFORMAT_RGBA8888;
+		case dsGfxFormat_B8G8R8A8:
+			return SDL_PIXELFORMAT_BGRA8888;
+		case dsGfxFormat_A8B8G8R8:
+			return SDL_PIXELFORMAT_ABGR8888;
+		case dsGfxFormat_A2R10G10B10:
+			return SDL_PIXELFORMAT_ARGB2101010;
+		case dsGfxFormat_A2B10G10R10:
+			return SDL_PIXELFORMAT_ABGR2101010;
+		case dsGfxFormat_R16G16B16A16:
+			return SDL_PIXELFORMAT_ABGR2101010;
+		default:
+			return SDL_PIXELFORMAT_XRGB8888; // Reasonable default.
+	}
+}
+
+static bool isNumberBetter(uint32_t target, uint32_t curBest, uint32_t candidate)
+{
+	if (curBest == candidate)
 		return false;
+
+	// First check for exact matches. Based on earlier check, if one matches the other doesn't.
+	if (candidate == target)
+		return true;
+	if (curBest == target)
+		return false;
+
+	if (candidate > target)
+	{
+		// Candidate larger than target: keep if best is smaller than the target or candidate is
+		// smaller than current best. (i.e. closest above the target)
+		return curBest < target || candidate < curBest;
 	}
 
+	// Candidate smaller than target: keep only if larger than current best.
+	return candidate > curBest;
+}
+
+static bool isPixelFormatBetter(const SDL_PixelFormatDetails* target,
+	const SDL_PixelFormatDetails* curBest, const SDL_PixelFormatDetails* candidate)
+{
+	// First check for closest matching bits per pixel.
+	if (curBest->bits_per_pixel != candidate->bits_per_pixel)
+	{
+		return isNumberBetter(
+			target->bits_per_pixel, curBest->bits_per_pixel, candidate->bits_per_pixel);
+	}
+
+	// Then check for closest matching color bits.
+	uint32_t curBestColorBits = curBest->Rbits + curBest->Gbits + curBest->Bbits;
+	uint32_t candidateColorBits = candidate->Rbits + candidate->Gbits + candidate->Bbits;
+	if (curBestColorBits != candidateColorBits)
+	{
+		return isNumberBetter(
+			target->Rbits + target->Gbits + target->Bbits, curBestColorBits, candidateColorBits);
+	}
+
+	// Then check for closest matching alpha bits.
+	if (curBest->Abits != candidate->Abits)
+		return isNumberBetter(target->Abits, curBest->Abits, candidate->Abits);
+
+	// Then check for whether R is the first color channel.
+	bool curBestRFirst = curBest->Rshift < curBest->Gshift;
+	bool candidateRFirst = candidate->Rshift < candidate->Gshift;
+	if (curBestRFirst != candidateRFirst)
+		return candidateRFirst == (target->Rshift < target->Gshift);
+
+	// Finally, check for whether A is the first color channel.
+	return (candidate->Ashift < candidate->Rshift) == (target->Ashift < target->Rshift);
+}
+
+static SDL_PixelFormat findBestPixelFormat(
+	SDL_DisplayMode** displayModes, uint32_t displayModeCount, dsGfxFormat format)
+{
+	SDL_PixelFormat bestFormat = SDL_PIXELFORMAT_UNKNOWN;
+	const SDL_PixelFormatDetails* bestDetails = NULL;
+	SDL_PixelFormat targetFormat = gfxFormatToPixelFormat(format);
+	const SDL_PixelFormatDetails* targetDetails = SDL_GetPixelFormatDetails(targetFormat);
+	DS_ASSERT(targetDetails);
+
+	for (uint32_t i = 0; i < displayModeCount; ++i)
+	{
+		const SDL_DisplayMode* displayMode = displayModes[i];
+		if (bestFormat == SDL_PIXELFORMAT_UNKNOWN)
+		{
+			bestFormat = displayMode->format;
+			// Exact match.
+			if (bestFormat == targetFormat)
+				return targetFormat;
+
+			bestDetails = SDL_GetPixelFormatDetails(bestFormat);
+			DS_ASSERT(bestDetails);
+		}
+
+		// Already checked when previously assigned.
+		if (bestFormat == displayMode->format)
+			continue;
+
+		// Exact match.
+		if (displayMode->format == targetFormat)
+			return targetFormat;
+
+		const SDL_PixelFormatDetails* curDetails = SDL_GetPixelFormatDetails(displayMode->format);
+		DS_ASSERT(curDetails);
+		DS_ASSERT(bestDetails);
+		if (isPixelFormatBetter(targetDetails, bestDetails, curDetails))
+		{
+			bestFormat = displayMode->format;
+			bestDetails = curDetails;
+		}
+	}
+
+	DS_ASSERT(bestFormat != SDL_PIXELFORMAT_UNKNOWN || displayModeCount == 0);
+	return bestFormat;
+}
+
+static bool findSDLDisplayMode(
+	SDL_DisplayMode* outMode, const dsDisplayMode* displayMode, dsGfxFormat format)
+{
 	int displayModeCount;
 	SDL_DisplayMode** displayModes = SDL_GetFullscreenDisplayModes(
 		(uint32_t)displayMode->displayID, &displayModeCount);
-	if (!defaultMode)
+	if (!displayModes)
 	{
 		DS_LOG_ERROR_F(
 			DS_APPLICATION_SDL_LOG_TAG, "Couldn't get display modes: %s", SDL_GetError());
@@ -119,11 +253,12 @@ static bool findSDLDisplayMode(SDL_DisplayMode* outMode, const dsDisplayMode* di
 		return false;
 	}
 
+	SDL_PixelFormat pixelFormat = findBestPixelFormat(displayModes, displayModeCount, format);
 	const SDL_DisplayMode* foundMode = NULL;
 	for (int i = 0; i < displayModeCount; ++i)
 	{
 		const SDL_DisplayMode* candidate = displayModes[i];
-		if (candidate->format == defaultMode->format && candidate->w == (int)displayMode->width &&
+		if (candidate->format == pixelFormat && candidate->w == (int)displayMode->width &&
 			candidate->h == (int)displayMode->height &&
 			candidate->refresh_rate == displayMode->refreshRate)
 		{
@@ -267,6 +402,48 @@ bool dsSDLWindow_getHDRProperties(float* outMaxSDRNits, float* outBaseSDRNits, f
 	{
 		*outMaxSDRNits = *outBaseSDRNits = *outMaxHDRNits = 0.0f;
 	}
+	return true;
+}
+
+bool dsSDLWindow_setSDLDisplayMode(
+	dsApplication* application, dsWindow* window, const dsDisplayMode* displayMode)
+{
+	SDL_Window* internalWindow = ((dsSDLWindow*)window)->sdlWindow;
+
+	if (window->style == dsWindowStyle_FullScreen)
+	{
+		const dsRenderer* renderer = application->renderer;
+		dsGfxFormat format;
+		switch (window->colorType)
+		{
+			case dsRenderSurfaceColorType_SDR:
+				format = renderer->sdrSurfaceColorFormat;
+				break;
+			case dsRenderSurfaceColorType_HDR:
+				format = renderer->hdrSurfaceColorFormat;
+				break;
+			case dsRenderSurfaceColorType_Preferred:
+				format = renderer->preferredSurfaceColorFormat;
+				break;
+			default:
+				format = renderer->sdrSurfaceColorFormat;
+				break;
+		}
+		SDL_DisplayMode sdlDisplayMode;
+		if (!findSDLDisplayMode(&sdlDisplayMode, displayMode, format))
+			return false;
+
+		if (!SDL_SetWindowFullscreenMode(internalWindow, &sdlDisplayMode))
+		{
+			DS_LOG_ERROR_F(
+				DS_APPLICATION_SDL_LOG_TAG, "Couldn't set window display mode: %s", SDL_GetError());
+			errno = EPERM;
+			return false;
+		}
+	}
+	else
+		SDL_SetWindowFullscreenMode(internalWindow, NULL);
+
 	return true;
 }
 
@@ -615,22 +792,8 @@ bool dsSDLWindow_setTitle(dsApplication* application, dsWindow* window, const ch
 bool dsSDLWindow_setDisplayMode(
 	dsApplication* application, dsWindow* window, const dsDisplayMode* displayMode)
 {
-	DS_UNUSED(application);
-
-	if (window->style == dsWindowStyle_FullScreen)
-	{
-		SDL_DisplayMode sdlDisplayMode;
-		if (!findSDLDisplayMode(&sdlDisplayMode, displayMode))
-			return false;
-
-		if (!SDL_SetWindowFullscreenMode(((dsSDLWindow*)window)->sdlWindow, &sdlDisplayMode))
-		{
-			DS_LOG_ERROR_F(
-				DS_APPLICATION_SDL_LOG_TAG, "Couldn't set window display mode: %s", SDL_GetError());
-			errno = EPERM;
-			return false;
-		}
-	}
+	if (!dsSDLWindow_setSDLDisplayMode(application, window, displayMode))
+		return false;
 
 	window->displayMode = *displayMode;
 	return true;
@@ -646,25 +809,8 @@ bool dsSDLWindow_resize(
 
 bool dsSDLWindow_setStyle(dsApplication* application, dsWindow* window, dsWindowStyle style)
 {
-	DS_UNUSED(application);
-	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
-
-	if (style == dsWindowStyle_FullScreen)
-	{
-		SDL_DisplayMode sdlDisplayMode;
-		if (!findSDLDisplayMode(&sdlDisplayMode, &window->displayMode))
-			return false;
-
-		if (!SDL_SetWindowFullscreenMode(sdlWindow->sdlWindow, &sdlDisplayMode))
-		{
-			DS_LOG_ERROR_F(
-				DS_APPLICATION_SDL_LOG_TAG, "Couldn't set window display mode: %s", SDL_GetError());
-			errno = EPERM;
-			return false;
-		}
-	}
-	else
-		SDL_SetWindowFullscreenMode(sdlWindow->sdlWindow, NULL);
+	if (!dsSDLWindow_setSDLDisplayMode(application, window, &window->displayMode))
+		return false;
 
 	if (!SDL_SetWindowFullscreen(((dsSDLWindow*)window)->sdlWindow, style != dsWindowStyle_Normal))
 	{

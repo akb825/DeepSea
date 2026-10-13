@@ -42,6 +42,8 @@ bool dsSDLWindow_getWindowHandle(void** outDisplayHandle, void** outWindowHandle
 	const dsApplication* application, SDL_Window* internalWindow);
 bool dsSDLWindow_getHDRProperties(float* outMaxSDRNits, float* outBaseSDRNits, float* outMaxHDRNits,
 	float* outHDRHeadroom, SDL_Window* internalWindow);
+bool dsSDLWindow_setSDLDisplayMode(
+	dsApplication* application, dsWindow* window, const dsDisplayMode* displayMode);
 
 bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, uint32_t width,
 	uint32_t height, dsWindowFlags flags);
