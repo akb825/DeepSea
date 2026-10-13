@@ -602,14 +602,17 @@ static bool updateWindowState(
 		window->safeArea = safeBounds;
 	}
 
-	float sdrWhiteLevel, maxHDRChannelValue;
-	if (!dsSDLWindow_getHDRProperties(&sdrWhiteLevel, &maxHDRChannelValue, internalWindow) ||
-		sdrWhiteLevel != window->sdrWhiteLevel ||
-		maxHDRChannelValue != window->maxHDRChannelValue)
+	float maxSDRNits, baseSDRNits, maxHDRNits, hdrHeadroom;
+	if (!dsSDLWindow_getHDRProperties(
+			&maxSDRNits, &baseSDRNits, &maxHDRNits, &hdrHeadroom, internalWindow) ||
+		maxSDRNits != window->maxSDRNits || baseSDRNits != window->baseSDRNits ||
+		maxHDRNits != window->maxHDRNits || hdrHeadroom != window->hdrHeadroom)
 	{
 		changeFlags |= dsWindowChangeFlags_HDR;
-		window->sdrWhiteLevel = sdrWhiteLevel;
-		window->maxHDRChannelValue = maxHDRChannelValue;
+		window->maxSDRNits = maxSDRNits;
+		window->baseSDRNits = baseSDRNits;
+		window->maxHDRNits = maxHDRNits;
+		window->hdrHeadroom = hdrHeadroom;
 	}
 
 	if (changeFlags == 0)

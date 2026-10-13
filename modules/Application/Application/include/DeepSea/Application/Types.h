@@ -373,8 +373,8 @@ typedef enum dsWindowChangeFlags
 	dsWindowChangeFlags_SafeArea = 0x200,     ///< The safe area within the window has changed.
 	dsWindowChangeFlags_Display = 0x400,      ///< The display of the window has changed.
 	/**
-	 * The HDR properties of the window has changed, specifically sdrWhiteLevel and
-	 * maxHDRChannelValue.
+	 * The HDR properties of the window has changed, specifically maxSDRNits, baseSDRNits,
+	 * maxHDRNits, and hdrHeadroom.
 	 */
 	dsWindowChangeFlags_HDR = 0x800
 } dsWindowChangeFlags;
@@ -2090,21 +2090,39 @@ typedef struct dsWindow
 	dsAlignedBox2i safeArea;
 
 	/**
-	 * @brief The white level for SDR content as a multiplier of a reference luminance.
+	 * @brief The maximum luminance for SDR content in nits.
 	 *
-	 * This may be used to determine how bright a color channel value of 1.0 is. The reference
-	 * luminance is often (though not guaranteed to be) 80 cd/m^2. Some platforms don't carry this
-	 * information, in which case it will be set to 1.
+	 * This may be 0 when HDR isn't enabled for a window or direct luminance info isn't available
+	 * for the current target.
 	 */
-	float sdrWhiteLevel;
+	float maxSDRNits;
 
 	/**
-	 * @brief The maximum value for a color channel for HDR content.
+	 * @brief The base SDR luminance for SDR content in nits.
 	 *
-	 * This may be multiplied by sdrWhiteLevel to find the maximum brightness relative to the
-	 * reference. The value is in linear color space.
+	 * This is the luminance for RGB of (1, 1, 1) in the extended linear sRGB colorspace. This may
+	 * be 0 when HDR isn't enabled for a window or direct luminance info isn't available for the
+	 * current target. In the latter case, it should be assumed that the base SDR luminance is the
+	 * same as the max SDR luminance, with that being an unknown value.
 	 */
-	float maxHDRChannelValue;
+	float baseSDRNits;
+
+	/**
+	 * @brief The maximum luninance for HDR content in nits.
+	 *
+	 * This may be 0 when HDR isn't enabled for a window or direct luminance info isn't available
+	 * for the current target.
+	 */
+	float maxHDRNits;
+
+	/**
+	 * @brief The headroom for HDR content relative to SDR content.
+	 *
+	 * This is the ratio between HDR and SDR luminance, such that the maximum HDR luminance will be
+	 * the maximum SDR luminance multiplied by the headroom. This will be 1 if HDR isn't enabled for
+	 * the window.
+	 */
+	float hdrHeadroom;
 } dsWindow;
 
 /**
