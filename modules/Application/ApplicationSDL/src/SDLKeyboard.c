@@ -338,6 +338,10 @@ dsKeyCode dsFromSDLScancode(SDL_Scancode scanCode)
 			return dsKeyCode_CrSel;
 		case SDL_SCANCODE_EXSEL:
 			return dsKeyCode_ExSel;
+#if SDL_VERSION_ATLEAST(3, 4, 18)
+		case SDL_SCANCODE_FRONT:
+			return dsKeyCode_Front;
+#endif
 		case SDL_SCANCODE_KP_00:
 			return dsKeyCode_Keypad00;
 		case SDL_SCANCODE_KP_000:
@@ -842,6 +846,12 @@ SDL_Scancode dsToSDLScancode(dsKeyCode keyCode)
 			return SDL_SCANCODE_CRSEL;
 		case dsKeyCode_ExSel:
 			return SDL_SCANCODE_EXSEL;
+		case dsKeyCode_Front:
+#if SDL_VERSION_ATLEAST(3, 4, 18)
+			return SDL_SCANCODE_FRONT;
+#else
+			return SDL_SCANCODE_UNKNOWN;
+#endif
 		case dsKeyCode_Keypad00:
 			return SDL_SCANCODE_KP_00;
 		case dsKeyCode_Keypad000:

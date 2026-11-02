@@ -235,6 +235,7 @@ typedef enum dsKeyCode
 	dsKeyCode_Oper,
 	dsKeyCode_CrSel,
 	dsKeyCode_ExSel,
+	dsKeyCode_Front,
 	dsKeyCode_ThousandsSeparator,
 	dsKeyCode_DecimalSeparator,
 	dsKeyCode_CurrencyUnit,

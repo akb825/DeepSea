@@ -25,6 +25,7 @@ TEST(SDLKeyboardTest, KeyCode)
 		// The following keycodes aren't supported on all versions of SDL.
 		switch (keyCode)
 		{
+			case dsKeyCode_Front:
 			case dsKeyCode_WWW:
 			case dsKeyCode_Mail:
 			case dsKeyCode_Calculator:
