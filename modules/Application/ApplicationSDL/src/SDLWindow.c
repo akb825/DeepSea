@@ -16,8 +16,10 @@
 
 #include "SDLWindow.h"
 
+#include "SDLApplicationInternal.h"
 #include "SDLShared.h"
 
+#include <DeepSea/Application/Platform/WaylandColorManager.h>
 #include <DeepSea/Application/Application.h>
 
 #include <DeepSea/ApplicationSDL/Types.h>
@@ -42,7 +44,7 @@ void dsSDLWindow_releaseUsableWindowHandle(void* handle);
 #include <android/native_window.h>
 #endif
 
-static dsWindowStyle getSdlPosition(dsVector2i* outSdlPosition,
+static dsWindowStyle getSDLPosition(dsVector2i* outSdlPosition,
 	const dsWindowInitPosition* position, const dsDisplayInfo* fallbackDisplay)
 {
 	if (!position || position->type == dsWindowInitPositionType_Default)
@@ -378,9 +380,25 @@ bool dsSDLWindow_getWindowHandle(void** outDisplayHandle, void** outWindowHandle
 }
 
 bool dsSDLWindow_getHDRProperties(float* outMaxSDRNits, float* outBaseSDRNits, float* outMaxHDRNits,
-	float* outHDRHeadroom, SDL_Window* internalWindow)
+	float* outHDRHeadroom, dsWindow* window)
 {
-	SDL_PropertiesID windowProps = SDL_GetWindowProperties(internalWindow);
+	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	if (sdlWindow->colorManagerSurface)
+	{
+		if (!dsWaylandColorManagerSurface_getLumiances(
+				outBaseSDRNits, outMaxHDRNits, sdlWindow->colorManagerSurface))
+		{
+			return false;
+		}
+
+		*outMaxSDRNits = *outBaseSDRNits;
+		*outHDRHeadroom = *outMaxHDRNits / *outMaxHDRNits;
+		return true;
+	}
+#endif
+
+	SDL_PropertiesID windowProps = SDL_GetWindowProperties(sdlWindow->sdlWindow);
 	if (!windowProps)
 		return false;
 
@@ -486,18 +504,18 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 		SDL_SyncWindow(internalWindow);
 	}
 
+	void* displayHandle;
+	void* windowHandle;
+	if (!dsSDLWindow_getWindowHandle(
+			&displayHandle, &windowHandle, application, sdlWindow->sdlWindow))
+	{
+		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
+		errno = EPERM;
+		return false;
+	}
+
 	if (flags & dsWindowFlags_DelaySurfaceCreate)
 	{
-		void* displayHandle;
-		void* windowHandle;
-		if (!dsSDLWindow_getWindowHandle(
-				&displayHandle, &windowHandle, application, sdlWindow->sdlWindow))
-		{
-			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
-			errno = EPERM;
-			return false;
-		}
-
 		// Purposefully don't check against the speicifc window handle as the location etc. may
 		// change before final creation.
 		if (!dsRenderSurface_isHandleSupported(
@@ -538,8 +556,51 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 	window->display = dsApplication_findDisplay(
 		application, SDL_GetDisplayForWindow(internalWindow));
 
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	if (sdlApplication->colorManager)
+	{
+		dsRenderColorSpace colorSpace = dsRenderColorSpace_NonLinearSRGB;
+		switch (window->colorType)
+		{
+			case dsRenderSurfaceColorType_SDR:
+				colorSpace = renderer->sdrSurfaceColorSpace;
+				break;
+			case dsRenderSurfaceColorType_HDR:
+				colorSpace = renderer->hdrSurfaceColorSpace;
+				break;
+			case dsRenderSurfaceColorType_Preferred:
+				colorSpace = renderer->preferredSurfaceColorSpace;
+				break;
+		}
+		sdlWindow->colorManagerSurface = dsWaylandColorManager_addSurface(
+			sdlApplication->colorManager, (struct wl_surface*)windowHandle,
+			(struct wl_output*)(window->display ? window->display->osDisplay : NULL),
+			colorSpace);
+
+		if (sdlWindow->colorManagerSurface)
+		{
+			// Immediately update so the HDR properties are available.
+			dsWaylandColorManager_update(sdlApplication->colorManager);
+		}
+		else
+		{
+			if (window->title)
+			{
+				DS_LOG_WARNING_F(DS_APPLICATION_SDL_LOG_TAG,
+					"Couldn't add window '%s' to Wayland color manager.", window->title);
+			}
+			else
+			{
+				DS_LOG_WARNING(
+					DS_APPLICATION_SDL_LOG_TAG, "Couldn't add window to Wayland color manager.");
+			}
+		}
+	}
+#endif
+
 	DS_VERIFY(dsSDLWindow_getHDRProperties(&window->maxSDRNits, &window->baseSDRNits,
-		&window->maxHDRNits, &window->hdrHeadroom, internalWindow));
+		&window->maxHDRNits, &window->hdrHeadroom, window));
 	return true;
 }
 
@@ -556,6 +617,11 @@ void dsSDLWindow_destroyComponents(dsWindow* window)
 		dsRenderer_restoreGlobalState(application->renderer);
 		sdlWindow->sdlWindow = NULL;
 	}
+
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	dsWaylandColorManagerSurface_destroy(sdlWindow->colorManagerSurface);
+	sdlWindow->colorManagerSurface = NULL;
+#endif
 }
 
 bool dsSDLWindow_createSurfaceInternal(dsWindow* window)
@@ -651,7 +717,7 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	baseWindow->colorType = colorType;
 
 	dsVector2i sdlPosition;
-	baseWindow->style = getSdlPosition(&sdlPosition, position, application->primaryDisplay);
+	baseWindow->style = getSDLPosition(&sdlPosition, position, application->primaryDisplay);
 
 	window->curSurfaceWidth = 0;
 	window->curSurfaceHeight = 0;
@@ -1034,6 +1100,10 @@ bool dsSDLWindow_destroy(dsApplication* application, dsWindow* window)
 		window->destroyDrawUserDataFunc(window->drawUserData);
 	if (window->destroyCloseUserDataFunc)
 		window->destroyCloseUserDataFunc(window->closeUserData);
+
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	dsWaylandColorManagerSurface_destroy(sdlWindow->colorManagerSurface);
+#endif
 
 	DS_VERIFY(dsAllocator_free(window->allocator, (void*)window->title));
 	DS_VERIFY(dsAllocator_free(window->allocator, window));

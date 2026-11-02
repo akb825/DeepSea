@@ -36,7 +36,6 @@ endif()
 ds_target_compile_definitions(deepsea_render PUBLIC
 	DS_GPU_PROFILING_ENABLED=${gpuProfilingEnabled})
 
-
 # Only need to list MSL as a dependency if static linking.
 if (NOT DEEPSEA_SHARED)
 	set(externalDeps "MSL COMPONENTS Client REQUIRED")

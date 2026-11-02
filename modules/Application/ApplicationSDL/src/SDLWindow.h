@@ -21,11 +21,16 @@
 
 #include <SDL3/SDL.h>
 
+typedef struct dsWaylandColorManagerSurface dsWaylandColorManagerSurface;
+
 typedef struct dsSDLWindow
 {
 	dsWindow window;
 	const char* surfaceName;
 	SDL_Window* sdlWindow;
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	dsWaylandColorManagerSurface* colorManagerSurface;
+#endif
 	uint32_t curSurfaceWidth;
 	uint32_t curSurfaceHeight;
 	uint32_t curSurfaceSamples;
@@ -41,7 +46,7 @@ SDL_Window* dsSDLWindow_createInternalWindow(const dsApplication* application, c
 bool dsSDLWindow_getWindowHandle(void** outDisplayHandle, void** outWindowHandle,
 	const dsApplication* application, SDL_Window* internalWindow);
 bool dsSDLWindow_getHDRProperties(float* outMaxSDRNits, float* outBaseSDRNits, float* outMaxHDRNits,
-	float* outHDRHeadroom, SDL_Window* internalWindow);
+	float* outHDRHeadroom, dsWindow* window);
 bool dsSDLWindow_setSDLDisplayMode(
 	dsApplication* application, dsWindow* window, const dsDisplayMode* displayMode);
 

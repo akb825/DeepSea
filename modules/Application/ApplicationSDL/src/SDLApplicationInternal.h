@@ -21,9 +21,15 @@
 
 #include <SDL3/SDL.h>
 
+typedef struct dsWaylandColorManager dsWaylandColormanager;
+
 typedef struct dsSDLApplication
 {
 	dsApplication application;
+
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	dsWaylandColormanager* colorManager;
+#endif
 
 	bool useMotionSensors;
 	bool quit;

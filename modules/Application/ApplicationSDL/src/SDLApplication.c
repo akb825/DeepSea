@@ -23,6 +23,7 @@
 #include "SDLShared.h"
 #include "SDLWindow.h"
 
+#include <DeepSea/Application/Platform/WaylandColorManager.h>
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/GameInput.h>
 #include <DeepSea/Application/Window.h>
@@ -221,8 +222,10 @@ inline static void rectToBounds(dsAlignedBox2i* outBounds, const SDL_Rect* rect)
 	outBounds->max.y = rect->y + rect->h;
 }
 
-dsDisplayInfo* createDisplay(dsAllocator* allocator, SDL_DisplayID displayID)
+dsDisplayInfo* createDisplay(
+	dsApplication* application, SDL_DisplayID displayID)
 {
+	DS_UNUSED(application);
 	const char* name = SDL_GetDisplayName(displayID);
 	size_t nameLen = name ? strlen(name) + 1 : 0;
 
@@ -263,7 +266,7 @@ dsDisplayInfo* createDisplay(dsAllocator* allocator, SDL_DisplayID displayID)
 		return NULL;
 	}
 
-	void* buffer = dsAllocator_alloc(allocator, fullSize);
+	void* buffer = dsAllocator_alloc(application->allocator, fullSize);
 	if (!buffer)
 	{
 		SDL_free(sdlModes);
@@ -279,6 +282,19 @@ dsDisplayInfo* createDisplay(dsAllocator* allocator, SDL_DisplayID displayID)
 	char* nameCopy = DS_ALLOCATE_OBJECT_ARRAY(&bufferAlloc, char, nameLen);
 	DS_ASSERT(nameCopy || !name);
 	memcpy(nameCopy, name, nameLen);
+	display->osDisplay = NULL;
+
+	SDL_PropertiesID properties = SDL_GetDisplayProperties(displayID);
+	if (properties)
+	{
+#if DS_WINDOWS
+		display->osDisplay = SDL_GetPointerProperty(
+			properties, SDL_PROP_DISPLAY_WINDOWS_HMONITOR_POINTER, NULL);
+#elif !DS_APPLE && !DS_ANDROID
+		display->osDisplay = SDL_GetPointerProperty(
+			properties, SDL_PROP_DISPLAY_WAYLAND_WL_OUTPUT_POINTER, NULL);
+#endif
+	}
 
 	dsDisplayMode* displayModes = NULL;
 	display->defaultMode = 0;
@@ -326,7 +342,54 @@ dsDisplayInfo* createDisplay(dsAllocator* allocator, SDL_DisplayID displayID)
 	DS_VERIFY(SDL_GetDisplayUsableBounds(displayID, &rect));
 	rectToBounds(&display->usableBounds, &rect);
 
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	if (sdlApplication->colorManager)
+	{
+		if (!dsWaylandColorManager_addOutput(
+				sdlApplication->colorManager, (struct wl_output*)display->osDisplay))
+		{
+			if (display->name)
+			{
+				DS_LOG_WARNING_F(DS_APPLICATION_SDL_LOG_TAG,
+					"Couldn't add display '%s' to Wayland color manager.", display->name);
+			}
+			else
+			{
+				DS_LOG_WARNING(
+					DS_APPLICATION_SDL_LOG_TAG, "Couldn't add display to Wayland color manager.");
+			}
+		}
+	}
+#endif
+
 	return display;
+}
+
+void destroyDisplay(dsApplication* application, SDL_DisplayID displayID)
+{
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	DS_UNUSED(sdlApplication);
+
+	for (uint32_t i = 0; i < application->displayCount; ++i)
+	{
+		dsDisplayInfo* display = application->displays[i];
+		if (display->id == displayID)
+		{
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+			if (sdlApplication->colorManager)
+			{
+				dsWaylandColorManager_removeOutput(
+					sdlApplication->colorManager, (struct wl_output*)display->osDisplay);
+			}
+#endif
+
+			// Constant-time removal.
+			application->displays[i] = application->displays[--application->displayCount];
+			DS_VERIFY(dsAllocator_free(application->allocator, display));
+			break;
+		}
+	}
 }
 
 static bool updateDisplayBounds(dsDisplayInfo* display)
@@ -530,6 +593,14 @@ static bool updateWindowState(
 		{
 			changeFlags |= dsWindowChangeFlags_Display;
 			window->display = display;
+
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+			if (sdlWindow->colorManagerSurface)
+			{
+				dsWaylandColorManagerSurface_setOutput(sdlWindow->colorManagerSurface,
+					(struct wl_output*)(display ? display->osDisplay : NULL));
+			}
+#endif
 		}
 	}
 
@@ -587,6 +658,14 @@ static bool updateWindowState(
 			sdlWindow->curSurfaceColorSpace = surface->colorSpace;
 			sdlWindow->curSurfaceDepthStencilFormat = surface->depthStencilFormat;
 
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+			if (sdlWindow->colorManagerSurface)
+			{
+				dsWaylandColorManagerSurface_setColorSpace(
+					sdlWindow->colorManagerSurface, surface->colorSpace);
+			}
+#endif
+
 			// Make sure the display mode is up to date.
 			dsSDLWindow_setSDLDisplayMode(application, window, &window->displayMode);
 		}
@@ -607,7 +686,7 @@ static bool updateWindowState(
 
 	float maxSDRNits, baseSDRNits, maxHDRNits, hdrHeadroom;
 	if (!dsSDLWindow_getHDRProperties(
-			&maxSDRNits, &baseSDRNits, &maxHDRNits, &hdrHeadroom, internalWindow) ||
+			&maxSDRNits, &baseSDRNits, &maxHDRNits, &hdrHeadroom, window) ||
 		maxSDRNits != window->maxSDRNits || baseSDRNits != window->baseSDRNits ||
 		maxHDRNits != window->maxHDRNits || hdrHeadroom != window->hdrHeadroom)
 	{
@@ -712,8 +791,7 @@ static bool convertEvent(
 		}
 		case SDL_EVENT_DISPLAY_ADDED:
 		{
-			dsDisplayInfo* display = createDisplay(
-				application->allocator, sdlEvent->display.displayID);
+			dsDisplayInfo* display = createDisplay(application, sdlEvent->display.displayID);
 			uint32_t index = application->displayCount;
 			if (!DS_CHECK(DS_APPLICATION_SDL_LOG_TAG, display != NULL &&
 					DS_RESIZEABLE_ARRAY_ADD(application->allocator, application->displays,
@@ -1145,6 +1223,12 @@ static void finalizeEvents(dsApplication* application)
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	DS_ASSERT(sdlApplication->hasFrameEvents);
 
+	bool luminanceValuesChanged = false;
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	if (sdlApplication->colorManager)
+		luminanceValuesChanged = dsWaylandColorManager_update(sdlApplication->colorManager);
+#endif
+
 	// Sanity check for any windows that might have a missing display or render surface size
 	// change didn't get caught by other events. Also check for format updates that may have
 	// occurred in response to other events.
@@ -1185,7 +1269,8 @@ static void finalizeEvents(dsApplication* application)
 			sdlWindow->curSurfaceColorSpace != colorSpace ||
 			sdlWindow->curSurfaceDepthStencilFormat != depthFormat;
 
-		if (!window->display || (surface && (sdlWindow->curSurfaceWidth != surface->width ||
+		if (luminanceValuesChanged || !window->display || (surface &&
+			(sdlWindow->curSurfaceWidth != surface->width ||
 			sdlWindow->curSurfaceHeight != surface->height ||
 			sdlWindow->curSurfaceRotation != surface->rotation || formatChanged)))
 		{
@@ -1369,12 +1454,9 @@ uint32_t dsSDLApplication_showMessageBoxBase(dsApplication* application,
 bool dsSDLApplication_prepareRendererOptions(dsRendererOptions* options, uint32_t rendererID)
 {
 	options->platform = dsRenderer_resolvePlatform(options->platform);
-	// Only need special render surface handling for OpenGL on Wayland.
-	if ((rendererID != DS_GL_RENDERER_ID && rendererID != DS_GLES_RENDERER_ID) ||
-		options->platform != dsGfxPlatform_Wayland)
-	{
+	// Only Wayland requires existing display connection.
+	if (options->platform != dsGfxPlatform_Wayland)
 		return true;
-	}
 
 	SDL_SetHintWithPriority(SDL_HINT_VIDEO_DRIVER, "wayland", SDL_HINT_OVERRIDE);
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
@@ -1385,10 +1467,14 @@ bool dsSDLApplication_prepareRendererOptions(dsRendererOptions* options, uint32_
 		errno = EPERM;
 		return false;
 	}
-
-	options->backgroundSurfaceType = dsRenderSurfaceType_Window;
 	options->osDisplay = SDL_GetPointerProperty(
 		SDL_GetGlobalProperties(), SDL_PROP_GLOBAL_VIDEO_WAYLAND_WL_DISPLAY_POINTER, NULL);
+
+	// Only need special render surface handling for OpenGL on Wayland.
+	if (rendererID != DS_GL_RENDERER_ID && rendererID != DS_GLES_RENDERER_ID)
+		return true;
+
+	options->backgroundSurfaceType = dsRenderSurfaceType_Window;
 	options->createBackgroundSurfaceFunc = &createBackgroundGLWindow;
 	options->destroyBackgroundSurfaceFunc = &destroyBackgroundGLWindow;
 	options->getBackgroundSurfaceHandleFunc = &getWaylandGLWindowHandle;
@@ -1580,9 +1666,13 @@ void dsSDLApplication_destroy(dsApplication* application)
 	if (!application)
 		return;
 
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	dsDestroyUserDataFunction finalizerFunc = application->finalizerFunc;
 	void* finalizerUserData = application->userData;
 	dsApplication_destroyUserData(application);
+
+	for (uint32_t i = 0; i < application->windowCount; ++i)
+		dsSDLWindow_destroy(application, application->windows[i]);
 
 	if (application->displays)
 	{
@@ -1590,10 +1680,10 @@ void dsSDLApplication_destroy(dsApplication* application)
 			DS_VERIFY(dsAllocator_free(application->allocator, application->displays[i]));
 	}
 
-	for (uint32_t i = 0; i < application->windowCount; ++i)
-		dsSDLWindow_destroy(application, application->windows[i]);
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	dsWaylandColorManager_destroy(sdlApplication->colorManager);
+#endif
 
-	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	for (int i = 0; i < dsCursor_Count; ++i)
 	{
 		if (sdlApplication->cursors[i])
@@ -1756,6 +1846,16 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	DS_VERIFY(dsApplication_initialize(baseApplication, allocator));
 	baseApplication->renderer = renderer;
 
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	if (renderer->platform == dsGfxPlatform_Wayland)
+	{
+		struct wl_display* wlDisplay = SDL_GetPointerProperty(
+			SDL_GetGlobalProperties(), SDL_PROP_GLOBAL_VIDEO_WAYLAND_WL_DISPLAY_POINTER, NULL);
+		// NOTE: Creation may legitimately fail if the runtime requirements aren't present.
+		application->colorManager = dsWaylandColorManager_create(allocator, wlDisplay);
+	}
+#endif
+
 	if (!DS_RESIZEABLE_ARRAY_ADD(allocator, baseApplication->displays,
 			baseApplication->displayCount, baseApplication->displayCapacity, displayCount))
 	{
@@ -1767,7 +1867,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	SDL_DisplayID primaryDisplayID = SDL_GetPrimaryDisplay();
 	for (int i = 0; i < displayCount; ++i)
 	{
-		dsDisplayInfo* display = createDisplay(allocator, displayIDs[i]);
+		dsDisplayInfo* display = createDisplay(baseApplication, displayIDs[i]);
 		if (!display)
 		{
 			SDL_free(displayIDs);
@@ -2024,19 +2124,7 @@ bool dsSDLApplication_event(dsApplication* application, SDL_Event* sdlEvent)
 				window->display = NULL;
 		}
 
-		for (uint32_t i = 0; i < application->displayCount; ++i)
-		{
-			dsDisplayInfo* display = application->displays[i];
-			if (display->id == sdlEvent->display.displayID)
-			{
-				// Constant-time removal.
-				application->displays[i] =
-					application->displays[application->displayCount - 1];
-				--application->displayCount;
-				DS_VERIFY(dsAllocator_free(application->allocator, display));
-				break;
-			}
-		}
+		destroyDisplay(application, sdlEvent->display.displayID);
 	}
 	else if (sdlEvent->type == SDL_EVENT_WINDOW_DESTROYED)
 		dsWindow_destroy(findWindow(application, sdlEvent->window.windowID));

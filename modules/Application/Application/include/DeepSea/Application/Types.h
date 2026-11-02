@@ -498,6 +498,11 @@ typedef struct dsDisplayInfo
 	const char* name;
 
 	/**
+	 * @brief The OS display pointer.
+	 */
+	void* osDisplay;
+
+	/**
 	 * @brief The display modes.
 	 */
 	const dsDisplayMode* displayModes;

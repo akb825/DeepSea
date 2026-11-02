@@ -100,7 +100,7 @@
 				{
 					"usage": ["Clear"],
 					"format": "SDRSurfaceColor",
-					"decoration": "UNorm",
+					"decoration": "Unset",
 					"clearValue": {"floatValues": [0.0, 0.1, 0.2, 0.0]},
 					"samples": "Surface"
 				},

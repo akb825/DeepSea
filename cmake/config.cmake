@@ -228,6 +228,7 @@ macro(ds_finish_modules)
 	if (DEEPSEA_SINGLE_SHARED)
 		get_property(findPackages GLOBAL PROPERTY DEEPSEA_FIND_PACKAGES)
 		get_property(sources GLOBAL PROPERTY DEEPSEA_SOURCES)
+		get_property(generatedSources GLOBAL PROPERTY DEEPSEA_GENERATED_SOURCES)
 		get_property(externalSources GLOBAL PROPERTY DEEPSEA_EXTERNAL_SOURCES)
 		get_property(modules GLOBAL PROPERTY DEEPSEA_MODULES)
 		get_property(externalLibraries GLOBAL PROPERTY DEEPSEA_EXTERNAL_LIBRARIES)
@@ -236,6 +237,12 @@ macro(ds_finish_modules)
 			get_property(findPackageArgs GLOBAL PROPERTY ${findPackage})
 			find_package(${findPackageArgs})
 		endforeach()
+
+		# TODO: Remove this call and DEEPSEA_GENERATED_SOURCES global property when the minimum
+		# version is updated to 3.20 or higher, as the GENERATED property was made global.
+		if (generatedSources)
+			set_source_files_properties(${generatedSources} PROPERTIES GENERATED ON)
+		endif()
 
 		if (externalSources)
 			if (MSVC)
@@ -405,5 +412,17 @@ macro(ds_target_compile_options target)
 		target_compile_options(deepsea ${ARGN})
 	else()
 		target_compile_options(${target} ${ARGN})
+	endif()
+endmacro()
+
+macro(ds_generated_sources target)
+	if (DEEPSEA_SINGLE_SHARED)
+		# Dependencies aren't respected out of the box, either due to the target and custom command
+		# being across directories or because of adding after the fact with target_sources(), so
+		# need to create a custom target to manually add the dependencies.
+		add_custom_target(${target} DEPENDS ${ARGN})
+		add_dependencies(deepsea ${target})
+		ds_set_folder(${target} modules/generated)
+		set_property(GLOBAL APPEND PROPERTY DEEPSEA_GENERATED_SOURCES ${ARGN})
 	endif()
 endmacro()
