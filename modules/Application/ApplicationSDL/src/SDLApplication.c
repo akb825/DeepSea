@@ -684,17 +684,16 @@ static bool updateWindowState(
 		window->safeArea = safeBounds;
 	}
 
-	float maxSDRNits, baseSDRNits, maxHDRNits, hdrHeadroom;
+	float maxSDRNits, linearOneNits, maxHDRNits;
 	if (!dsSDLWindow_getHDRProperties(
-			&maxSDRNits, &baseSDRNits, &maxHDRNits, &hdrHeadroom, window) ||
-		maxSDRNits != window->maxSDRNits || baseSDRNits != window->baseSDRNits ||
-		maxHDRNits != window->maxHDRNits || hdrHeadroom != window->hdrHeadroom)
+			&maxSDRNits, &linearOneNits, &maxHDRNits, window) ||
+		maxSDRNits != window->maxSDRNits || linearOneNits != window->linearOneNits ||
+		maxHDRNits != window->maxHDRNits)
 	{
 		changeFlags |= dsWindowChangeFlags_HDR;
 		window->maxSDRNits = maxSDRNits;
-		window->baseSDRNits = baseSDRNits;
+		window->linearOneNits = linearOneNits;
 		window->maxHDRNits = maxHDRNits;
-		window->hdrHeadroom = hdrHeadroom;
 	}
 
 	if (changeFlags == 0)

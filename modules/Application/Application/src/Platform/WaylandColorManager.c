@@ -700,13 +700,11 @@ dsWaylandColorManager* dsWaylandColorManager_create(
 	if (submitQueue(colorManager->display, colorManager->displayFD,
 			colorManager->colorManagerEventQueue, true))
 	{
-		colorManager->expectColorManagerEvents = false;
-		if (submitQueue(colorManager->display, colorManager->displayFD,
-				colorManager->outputEventQueue, colorManager->expectOutputEvents))
-		{
-			colorManager->expectOutputEvents = false;
-		}
+		submitQueue(colorManager->display, colorManager->displayFD,
+				colorManager->outputEventQueue, colorManager->expectOutputEvents);
 	}
+	colorManager->expectColorManagerEvents = false;
+	colorManager->expectOutputEvents = false;
 	DS_ASSERT(!colorManager->expectSurfaceEvents); // No surfaces added yet.
 	return colorManager;
 }
@@ -817,17 +815,13 @@ bool dsWaylandColorManager_update(dsWaylandColorManager* colorManager)
 		colorManager->display, colorManager->displayFD, colorManager->globalEventQueue, false);
 
 	// Wait on color manager and output events only if we expect there to be any.
-	if (submitQueue(colorManager->display, colorManager->displayFD,
-			colorManager->colorManagerEventQueue, colorManager->expectColorManagerEvents))
-	{
-		colorManager->expectColorManagerEvents = false;
-	}
+	submitQueue(colorManager->display, colorManager->displayFD,
+		colorManager->colorManagerEventQueue, colorManager->expectColorManagerEvents);
+	colorManager->expectColorManagerEvents = false;
 
-	if (submitQueue(colorManager->display, colorManager->displayFD,
-			colorManager->outputEventQueue, colorManager->expectOutputEvents))
-	{
-		colorManager->expectOutputEvents = false;
-	}
+	submitQueue(colorManager->display, colorManager->displayFD,
+		colorManager->outputEventQueue, colorManager->expectOutputEvents);
+	colorManager->expectOutputEvents = false;
 
 	// After the outputs are updated, ensure the image descriptions for each surface are up to date.
 	// This ensures the image descrptions aren't created and piped through the protocol until we are
@@ -840,8 +834,8 @@ bool dsWaylandColorManager_update(dsWaylandColorManager* colorManager)
 		// If we had surface events, expect that image descriptions were set and need to be flushed.
 		if (colorManager->expectSurfaceEvents)
 			flushDisplay(colorManager->display, colorManager->displayFD, true);
-		colorManager->expectSurfaceEvents = false;
 	}
+	colorManager->expectSurfaceEvents = false;
 
 	return colorManager->changedSurface;
 }

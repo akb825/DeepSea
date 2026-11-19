@@ -373,8 +373,8 @@ typedef enum dsWindowChangeFlags
 	dsWindowChangeFlags_SafeArea = 0x200,     ///< The safe area within the window has changed.
 	dsWindowChangeFlags_Display = 0x400,      ///< The display of the window has changed.
 	/**
-	 * The HDR properties of the window has changed, specifically maxSDRNits, baseSDRNits,
-	 * maxHDRNits, and hdrHeadroom.
+	 * The HDR properties of the window has changed, specifically maxSDRNits, linearOneNits,
+	 * and maxHDRNits.
 	 */
 	dsWindowChangeFlags_HDR = 0x800
 } dsWindowChangeFlags;
@@ -2097,37 +2097,24 @@ typedef struct dsWindow
 	/**
 	 * @brief The maximum luminance for SDR content in nits.
 	 *
-	 * This may be 0 when HDR isn't enabled for a window or direct luminance info isn't available
-	 * for the current target.
+	 * This may be 0 when HDR isn't available for a window.
 	 */
 	float maxSDRNits;
 
 	/**
-	 * @brief The base SDR luminance for SDR content in nits.
+	 * @brief The luminance for the RGB value of (1, 1, 1) in the extended linear sRGB colorspace in
+	 * nits.
 	 *
-	 * This is the luminance for RGB of (1, 1, 1) in the extended linear sRGB colorspace. This may
-	 * be 0 when HDR isn't enabled for a window or direct luminance info isn't available for the
-	 * current target. In the latter case, it should be assumed that the base SDR luminance is the
-	 * same as the max SDR luminance, with that being an unknown value.
+	 * This may be 0 when HDR isn't available for a window.
 	 */
-	float baseSDRNits;
+	float linearOneNits;
 
 	/**
 	 * @brief The maximum luninance for HDR content in nits.
 	 *
-	 * This may be 0 when HDR isn't enabled for a window or direct luminance info isn't available
-	 * for the current target.
+	 * This may be 0 when HDR isn't available for a window.
 	 */
 	float maxHDRNits;
-
-	/**
-	 * @brief The headroom for HDR content relative to SDR content.
-	 *
-	 * This is the ratio between HDR and SDR luminance, such that the maximum HDR luminance will be
-	 * the maximum SDR luminance multiplied by the headroom. This will be 1 if HDR isn't enabled for
-	 * the window.
-	 */
-	float hdrHeadroom;
 } dsWindow;
 
 /**

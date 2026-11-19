@@ -379,21 +379,20 @@ bool dsSDLWindow_getWindowHandle(void** outDisplayHandle, void** outWindowHandle
 	return *outWindowHandle != NULL;
 }
 
-bool dsSDLWindow_getHDRProperties(float* outMaxSDRNits, float* outBaseSDRNits, float* outMaxHDRNits,
-	float* outHDRHeadroom, dsWindow* window)
+bool dsSDLWindow_getHDRProperties(
+	float* outMaxSDRNits, float* outLinearOneNits, float* outMaxHDRNits, dsWindow* window)
 {
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
 	if (sdlWindow->colorManagerSurface)
 	{
 		if (!dsWaylandColorManagerSurface_getLumiances(
-				outBaseSDRNits, outMaxHDRNits, sdlWindow->colorManagerSurface))
+				outLinearOneNits, outMaxHDRNits, sdlWindow->colorManagerSurface))
 		{
 			return false;
 		}
 
-		*outMaxSDRNits = *outBaseSDRNits;
-		*outHDRHeadroom = *outMaxHDRNits / *outMaxHDRNits;
+		*outMaxSDRNits = *outLinearOneNits;
 		return true;
 	}
 #endif
@@ -402,24 +401,24 @@ bool dsSDLWindow_getHDRProperties(float* outMaxSDRNits, float* outBaseSDRNits, f
 	if (!windowProps)
 		return false;
 
-	*outHDRHeadroom = SDL_GetFloatProperty(
-		windowProps, SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 1.0f);
-	// Windows and Linux (specifically with Wayland) use Microsoft's scRGB interpretation where the
-	// base SDR luminance (at RGB (1, 1, 1)) is 80 nits.
-#if !DS_APPLE && !DS_ANDROID
-	if (*outHDRHeadroom > 1.0f)
+	float headroom = SDL_GetFloatProperty(windowProps, SDL_PROP_WINDOW_HDR_HEADROOM_FLOAT, 1.0f);
+	if (headroom > 1.0f)
 	{
+#if DS_WINDOWS
+		// Microsoft interpretation of scRGB.
+		*outLinearOneNits = 80.0f;
+#else
+		// Current value based on Apple systems.
+		// TODO: Implementation-specific versions.
+		*outMaxSDRNits = 100.0f;
+#endif
 		float sdrWhiteLevel = SDL_GetFloatProperty(
 			windowProps, SDL_PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT, 1.0f);
-		*outBaseSDRNits = 80.0f;
-		*outMaxSDRNits = sdrWhiteLevel*(*outBaseSDRNits);
-		*outMaxHDRNits = (*outMaxSDRNits)*(*outHDRHeadroom);
+		*outMaxSDRNits = sdrWhiteLevel*(*outLinearOneNits);
+		*outMaxHDRNits = (*outMaxSDRNits)*headroom;
 	}
 	else
-#endif
-	{
-		*outMaxSDRNits = *outBaseSDRNits = *outMaxHDRNits = 0.0f;
-	}
+		*outMaxSDRNits = *outLinearOneNits = *outMaxHDRNits = 0.0f;
 	return true;
 }
 
@@ -599,8 +598,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 	}
 #endif
 
-	DS_VERIFY(dsSDLWindow_getHDRProperties(&window->maxSDRNits, &window->baseSDRNits,
-		&window->maxHDRNits, &window->hdrHeadroom, window));
+	DS_VERIFY(dsSDLWindow_getHDRProperties(
+		&window->maxSDRNits, &window->linearOneNits, &window->maxHDRNits, window));
 	return true;
 }
 
