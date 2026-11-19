@@ -170,6 +170,43 @@ static bool submitQueue(
 		wl_display_dispatch_queue_pending(display, queue) >= 0;
 }
 
+static enum wp_color_manager_v1_transfer_function getSRGBTransferFunction(
+	uint32_t transferFunctionMask)
+{
+	/*
+	 * The named sRGB transfer function is deprecated, as some implementations interpret as the
+	 * "true" sRGB transfer function of a composite function with a power of 2.4, while others use
+	 * the gamma 2.2 approximation. The Wayland documentation states that as a rule of thumb,
+	 * gamma 2.2 should be used in most cases, though this conflicts with Vulkan's specification
+	 * that uses the full sRGB transfer function. It is hard to find a straight answer about what
+	 * most displays end up using internally, with some discussions indicating that gamma 2.2 is
+	 * more prevalent and others stating that modern displays, or at least higher quality ones, use
+	 * the full transfer function.
+	 *
+	 * Currently, the full transfer function is deemed to be the most correct default option
+	 * because:
+	 * - The color conversions within this project use the full transfer function, so computations
+	 *   performed in linear space will use this for the final values, including HDR colorspaces
+	 * - The Vulkan spec uses the full transfer function, and should be used for sRGB encoded
+	 *   textures.
+	 * - The compositor should theoretically correct with any mismatches between the image
+	 *   description and what it expects for its own compositing and final display.
+	 *
+	 * With this in mind, the priority is:
+	 * 1. Compund power 2.4 as the full sRGB transfer function.
+	 * 2. The deprecated sRGB transfer function, which would fall back to the internal compositor
+	 *    logic.
+	 * 3. Gamma 2.2 as a fallback.
+	 */
+	if (transferFunctionMask & (1U << WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_COMPOUND_POWER_2_4))
+		return WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_COMPOUND_POWER_2_4;
+	if (transferFunctionMask & (1U << WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_SRGB))
+		return WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_SRGB;
+	if (transferFunctionMask & (1U << WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_GAMMA22))
+		return WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_GAMMA22;
+	return 0; // Explicitly documented as invalid.
+}
+
 static void dsWaylandColorManagerSurface_imageDescriptionFailed(
 	void* data, struct wp_image_description_v1* imageDescription, uint32_t cause,
 	const char* msg)
@@ -244,43 +281,49 @@ static bool dsWaylandColorManagerSurface_updateImageDescription(
 	{
 		case dsRenderColorSpace_NonLinearSRGB:
 		case dsRenderColorSpace_NonLinearSRGBConverting:
-			if (!(colorManager->transferFunctionMask &
-					WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_SRGB) ||
-				!(colorManager->primariesMask & WP_COLOR_MANAGER_V1_PRIMARIES_SRGB))
+		{
+			enum wp_color_manager_v1_transfer_function transferFunction = getSRGBTransferFunction(
+				colorManager->transferFunctionMask);
+			enum wp_color_manager_v1_primaries primaries = WP_COLOR_MANAGER_V1_PRIMARIES_SRGB;
+			if (transferFunction == 0 || !(colorManager->primariesMask & (1U << primaries)))
 			{
 				wp_image_description_creator_params_v1_destroy(creatorParams);
 				errno = EPERM;
 				return false;
 			}
 
-			wp_image_description_creator_params_v1_set_tf_named(
-				creatorParams, WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_SRGB);
-			wp_image_description_creator_params_v1_set_primaries_named(
-				creatorParams, WP_COLOR_MANAGER_V1_PRIMARIES_SRGB);
+			wp_image_description_creator_params_v1_set_tf_named(creatorParams, transferFunction);
+			wp_image_description_creator_params_v1_set_primaries_named(creatorParams, primaries);
 			wp_image_description_creator_params_v1_set_luminances(
 				creatorParams, 0, surface->referenceLuminance, surface->referenceLuminance);
 			break;
+		}
 		case dsRenderColorSpace_ExtendedLinearSRGB:
-			if (!(colorManager->transferFunctionMask &
-					WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_EXT_LINEAR) ||
-				!(colorManager->primariesMask & WP_COLOR_MANAGER_V1_PRIMARIES_SRGB))
+		{
+			enum wp_color_manager_v1_transfer_function transferFunction =
+				WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_EXT_LINEAR;
+			enum wp_color_manager_v1_primaries primaries = WP_COLOR_MANAGER_V1_PRIMARIES_SRGB;
+			if (!(colorManager->transferFunctionMask & (1U << transferFunction)) ||
+				!(colorManager->primariesMask & (1U << primaries)))
 			{
 				wp_image_description_creator_params_v1_destroy(creatorParams);
 				errno = EPERM;
 				return false;
 			}
 
-			wp_image_description_creator_params_v1_set_tf_named(
-				creatorParams, WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_EXT_LINEAR);
-			wp_image_description_creator_params_v1_set_primaries_named(
-				creatorParams, WP_COLOR_MANAGER_V1_PRIMARIES_SRGB);
+			wp_image_description_creator_params_v1_set_tf_named(creatorParams, transferFunction);
+			wp_image_description_creator_params_v1_set_primaries_named(creatorParams, primaries);
 			wp_image_description_creator_params_v1_set_luminances(
 				creatorParams, 0, surface->referenceLuminance, surface->maxLuminance);
 			break;
+		}
 		case dsRenderColorSpace_Rec2100PQ:
-			if (!(colorManager->transferFunctionMask &
-					WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_ST2084_PQ) ||
-				!(colorManager->primariesMask & WP_COLOR_MANAGER_V1_PRIMARIES_BT2020))
+		{
+			enum wp_color_manager_v1_transfer_function transferFunction =
+				WP_COLOR_MANAGER_V1_TRANSFER_FUNCTION_ST2084_PQ;
+			enum wp_color_manager_v1_primaries primaries = WP_COLOR_MANAGER_V1_PRIMARIES_BT2020;
+			if (!(colorManager->transferFunctionMask & (1U << transferFunction)) ||
+				!(colorManager->primariesMask & (1U << primaries)))
 			{
 				wp_image_description_creator_params_v1_destroy(creatorParams);
 				errno = EPERM;
@@ -298,6 +341,7 @@ static bool dsWaylandColorManagerSurface_updateImageDescription(
 			wp_image_description_creator_params_v1_set_mastering_luminance(
 				creatorParams, 0, surface->maxLuminance);
 			break;
+		}
 		default:
 			wp_image_description_creator_params_v1_destroy(creatorParams);
 			errno = EINVAL;

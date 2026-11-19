@@ -503,18 +503,18 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 		SDL_SyncWindow(internalWindow);
 	}
 
-	void* displayHandle;
-	void* windowHandle;
-	if (!dsSDLWindow_getWindowHandle(
-			&displayHandle, &windowHandle, application, sdlWindow->sdlWindow))
-	{
-		DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
-		errno = EPERM;
-		return false;
-	}
-
 	if (flags & dsWindowFlags_DelaySurfaceCreate)
 	{
+		void* displayHandle;
+		void* windowHandle;
+		if (!dsSDLWindow_getWindowHandle(
+				&displayHandle, &windowHandle, application, sdlWindow->sdlWindow))
+		{
+			DS_LOG_ERROR(DS_APPLICATION_SDL_LOG_TAG, "Unsupported video driver.");
+			errno = EPERM;
+			return false;
+		}
+
 		// Purposefully don't check against the speicifc window handle as the location etc. may
 		// change before final creation.
 		if (!dsRenderSurface_isHandleSupported(
@@ -559,6 +559,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	if (sdlApplication->colorManager)
 	{
+		struct wl_surface* surface = (struct wl_surface*)SDL_GetPointerProperty(
+			SDL_GetWindowProperties(internalWindow), SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
 		dsRenderColorSpace colorSpace = dsRenderColorSpace_NonLinearSRGB;
 		switch (window->colorType)
 		{
@@ -573,7 +575,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 				break;
 		}
 		sdlWindow->colorManagerSurface = dsWaylandColorManager_addSurface(
-			sdlApplication->colorManager, (struct wl_surface*)windowHandle,
+			sdlApplication->colorManager, surface,
 			(struct wl_output*)(window->display ? window->display->osDisplay : NULL),
 			colorSpace);
 
@@ -689,6 +691,13 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	void* buffer = dsAllocator_alloc(allocator, fullSize);
 	if (!buffer)
 		return NULL;
+
+	// Add managed color space flag if the Wayland color manager is used.
+#if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
+	if (sdlApplication->colorManager)
+		renderSurfaceUsage |= dsRenderSurfaceUsage_ManagedColorSpace;
+#endif
 
 	dsBufferAllocator bufferAlloc;
 	DS_VERIFY(dsBufferAllocator_initialize(&bufferAlloc, buffer, fullSize));

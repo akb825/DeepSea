@@ -254,7 +254,13 @@ typedef enum dsRenderSurfaceUsage
 	 * that allow screen rotation. If unset, the rotation of the render surface will always be 0
 	 * degrees.
 	 */
-	dsRenderSurfaceUsage_ClientRotations = 0x40
+	dsRenderSurfaceUsage_ClientRotations = 0x40,
+	/**
+	 * The color space is externally managed. For some platforms, this will ensure that the renderer
+	 * doesn't attempt to override the manually set colorspace properties of the underlying OS
+	 * surface.
+	 */
+	dsRenderSurfaceUsage_ManagedColorSpace = 0x80
 } dsRenderSurfaceUsage;
 
 /**

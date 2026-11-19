@@ -105,8 +105,9 @@ DS_RENDER_EXPORT bool dsRenderSurface_rotateScissor(dsAlignedBox2f* result,
  *     determined. The most commmon case where -1 would be returned is if a NULL osHandle is
  *     provided and the implementation can't conclusively whether the format can be used.
  */
-DS_RENDER_EXPORT int dsRenderSurface_isHandleSupported(const dsRenderer* renderer, void* displayHandle,
-	void* osHandle, dsRenderSurfaceType type, dsRenderSurfaceColorType colorType);
+DS_RENDER_EXPORT int dsRenderSurface_isHandleSupported(const dsRenderer* renderer,
+	void* displayHandle, void* osHandle, dsRenderSurfaceType type,
+	dsRenderSurfaceColorType colorType);
 
 /**
  * @brief Checks wiether a the handle for creating a render surface will be supported with the a

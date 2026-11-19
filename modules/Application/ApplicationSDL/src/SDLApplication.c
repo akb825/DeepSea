@@ -1853,6 +1853,8 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		// NOTE: Creation may legitimately fail if the runtime requirements aren't present.
 		application->colorManager = dsWaylandColorManager_create(allocator, wlDisplay);
 	}
+	else
+		application->colorManager = NULL;
 #endif
 
 	if (!DS_RESIZEABLE_ARRAY_ADD(allocator, baseApplication->displays,

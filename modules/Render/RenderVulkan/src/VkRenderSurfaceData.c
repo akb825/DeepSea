@@ -342,14 +342,27 @@ dsVkRenderSurfaceData* dsVkRenderSurfaceData_create(dsAllocator* allocator, dsRe
 		return NULL;
 	}
 
-	VkColorSpaceKHR vkColorSpace = dsVkColorSpace(colorSpace);
-	if (!dsVkRenderSurfaceData_supportsFormat(
-			renderer, surface, colorFormatInfo->vkFormat, vkColorSpace))
+	// Use pass-through colorspace if managed, falling back to the standard color space if
+	// pass-through isn't supported. Only check if reasonably sure it should be there (i.e. has the
+	// color space extension) to avoid double queries.
+	VkColorSpaceKHR vkColorSpace;
+	if (instance->hasColorSpace && (usage & dsRenderSurfaceUsage_ManagedColorSpace) &&
+		dsVkRenderSurfaceData_supportsFormat(
+				renderer, surface, colorFormatInfo->vkFormat, VK_COLOR_SPACE_PASS_THROUGH_EXT))
 	{
-		DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG,
-			"Renderer color format not supported by window surface.");
-		errno = EPERM;
-		return NULL;
+		vkColorSpace = VK_COLOR_SPACE_PASS_THROUGH_EXT;
+	}
+	else
+	{
+		vkColorSpace = dsVkColorSpace(colorSpace);
+		if (!dsVkRenderSurfaceData_supportsFormat(
+				renderer, surface, colorFormatInfo->vkFormat, vkColorSpace))
+		{
+			DS_LOG_INFO(DS_RENDER_VULKAN_LOG_TAG,
+				"Renderer color format not supported by window surface.");
+			errno = EPERM;
+			return NULL;
+		}
 	}
 
 	VkCompositeAlphaFlagBitsKHR alphaFlags = 0;
