@@ -86,7 +86,7 @@ vec3 dsSRGBFromLinear(vec3 color, float gamma)
 	bvec3 small = lessThan(color, vec3(0.0031308));
 	vec3 smallColor = color*vec3(12.92);
 	vec3 largeColor = vec3(1.055)*pow(color, vec3(1.0/gamma)) - vec3(0.055);
-	return mix(largeColor, smallColor, vec3(small));
+	return mix(largeColor, smallColor, small);
 }
 
 /**
@@ -133,7 +133,7 @@ vec3 dsLinearFromSRGB(vec3 color, float gamma)
 	bvec3 small = lessThan(color, vec3(0.04045));
 	vec3 smallColor = color/vec3(12.92);
 	vec3 largeColor = pow((color + vec3(0.055))/vec3(1.055), vec3(gamma));
-	return mix(largeColor, smallColor, vec3(small));
+	return mix(largeColor, smallColor, small);
 }
 
 /**
