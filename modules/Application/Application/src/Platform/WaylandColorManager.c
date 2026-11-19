@@ -337,9 +337,15 @@ static bool dsWaylandColorManagerSurface_updateImageDescription(
 			// Transfer function defines the maximum luminance.
 			wp_image_description_creator_params_v1_set_luminances(
 				creatorParams, 0, surface->referenceLuminance, 10000);
-			// Use the mastering luminance to define the actual max luminance to display.
-			wp_image_description_creator_params_v1_set_mastering_luminance(
-				creatorParams, 0, surface->maxLuminance);
+			// Ensure the maximum luminance is clamped.
+			wp_image_description_creator_params_v1_set_max_cll(
+				creatorParams, surface->maxLuminance);
+			if (colorManager->featureMask &
+					(1U << WP_COLOR_MANAGER_V1_FEATURE_SET_MASTERING_DISPLAY_PRIMARIES))
+			{
+				wp_image_description_creator_params_v1_set_mastering_luminance(
+					creatorParams, 0, surface->maxLuminance);
+			}
 			break;
 		}
 		default:
