@@ -384,10 +384,10 @@ bool dsSDLWindow_getHDRProperties(
 {
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-	if (sdlWindow->colorManagerSurface)
+	if (sdlWindow->waylandColorManagerSurface)
 	{
 		if (!dsWaylandColorManagerSurface_getLumiances(
-				outLinearOneNits, outMaxHDRNits, sdlWindow->colorManagerSurface))
+				outLinearOneNits, outMaxHDRNits, sdlWindow->waylandColorManagerSurface))
 		{
 			return false;
 		}
@@ -557,7 +557,7 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
-	if (sdlApplication->colorManager)
+	if (sdlApplication->waylandColorManager)
 	{
 		struct wl_surface* surface = (struct wl_surface*)SDL_GetPointerProperty(
 			SDL_GetWindowProperties(internalWindow), SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, NULL);
@@ -574,15 +574,15 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 				colorSpace = renderer->preferredSurfaceColorSpace;
 				break;
 		}
-		sdlWindow->colorManagerSurface = dsWaylandColorManager_addSurface(
-			sdlApplication->colorManager, surface,
+		sdlWindow->waylandColorManagerSurface = dsWaylandColorManager_addSurface(
+			sdlApplication->waylandColorManager, surface,
 			(struct wl_output*)(window->display ? window->display->osDisplay : NULL),
 			colorSpace);
 
-		if (sdlWindow->colorManagerSurface)
+		if (sdlWindow->waylandColorManagerSurface)
 		{
 			// Immediately update so the HDR properties are available.
-			dsWaylandColorManager_update(sdlApplication->colorManager);
+			dsWaylandColorManager_update(sdlApplication->waylandColorManager);
 		}
 		else
 		{
@@ -620,8 +620,8 @@ void dsSDLWindow_destroyComponents(dsWindow* window)
 	}
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-	dsWaylandColorManagerSurface_destroy(sdlWindow->colorManagerSurface);
-	sdlWindow->colorManagerSurface = NULL;
+	dsWaylandColorManagerSurface_destroy(sdlWindow->waylandColorManagerSurface);
+	sdlWindow->waylandColorManagerSurface = NULL;
 #endif
 }
 
@@ -695,7 +695,7 @@ dsWindow* dsSDLWindow_create(dsApplication* application, dsAllocator* allocator,
 	// Add managed color space flag if the Wayland color manager is used.
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
-	if (sdlApplication->colorManager)
+	if (sdlApplication->waylandColorManager)
 		renderSurfaceUsage |= dsRenderSurfaceUsage_ManagedColorSpace;
 #endif
 
@@ -1110,7 +1110,7 @@ bool dsSDLWindow_destroy(dsApplication* application, dsWindow* window)
 		window->destroyCloseUserDataFunc(window->closeUserData);
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-	dsWaylandColorManagerSurface_destroy(sdlWindow->colorManagerSurface);
+	dsWaylandColorManagerSurface_destroy(sdlWindow->waylandColorManagerSurface);
 #endif
 
 	DS_VERIFY(dsAllocator_free(window->allocator, (void*)window->title));

@@ -344,10 +344,10 @@ dsDisplayInfo* createDisplay(
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
-	if (sdlApplication->colorManager)
+	if (sdlApplication->waylandColorManager)
 	{
 		if (!dsWaylandColorManager_addOutput(
-				sdlApplication->colorManager, (struct wl_output*)display->osDisplay))
+				sdlApplication->waylandColorManager, (struct wl_output*)display->osDisplay))
 		{
 			if (display->name)
 			{
@@ -377,10 +377,10 @@ void destroyDisplay(dsApplication* application, SDL_DisplayID displayID)
 		if (display->id == displayID)
 		{
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-			if (sdlApplication->colorManager)
+			if (sdlApplication->waylandColorManager)
 			{
 				dsWaylandColorManager_removeOutput(
-					sdlApplication->colorManager, (struct wl_output*)display->osDisplay);
+					sdlApplication->waylandColorManager, (struct wl_output*)display->osDisplay);
 			}
 #endif
 
@@ -595,9 +595,9 @@ static bool updateWindowState(
 			window->display = display;
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-			if (sdlWindow->colorManagerSurface)
+			if (sdlWindow->waylandColorManagerSurface)
 			{
-				dsWaylandColorManagerSurface_setOutput(sdlWindow->colorManagerSurface,
+				dsWaylandColorManagerSurface_setOutput(sdlWindow->waylandColorManagerSurface,
 					(struct wl_output*)(display ? display->osDisplay : NULL));
 			}
 #endif
@@ -659,10 +659,10 @@ static bool updateWindowState(
 			sdlWindow->curSurfaceDepthStencilFormat = surface->depthStencilFormat;
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-			if (sdlWindow->colorManagerSurface)
+			if (sdlWindow->waylandColorManagerSurface)
 			{
 				dsWaylandColorManagerSurface_setColorSpace(
-					sdlWindow->colorManagerSurface, surface->colorSpace);
+					sdlWindow->waylandColorManagerSurface, surface->colorSpace);
 			}
 #endif
 
@@ -1224,8 +1224,8 @@ static void finalizeEvents(dsApplication* application)
 
 	bool luminanceValuesChanged = false;
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-	if (sdlApplication->colorManager)
-		luminanceValuesChanged = dsWaylandColorManager_update(sdlApplication->colorManager);
+	if (sdlApplication->waylandColorManager)
+		luminanceValuesChanged = dsWaylandColorManager_update(sdlApplication->waylandColorManager);
 #endif
 
 	// Sanity check for any windows that might have a missing display or render surface size
@@ -1680,7 +1680,7 @@ void dsSDLApplication_destroy(dsApplication* application)
 	}
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-	dsWaylandColorManager_destroy(sdlApplication->colorManager);
+	dsWaylandColorManager_destroy(sdlApplication->waylandColorManager);
 #endif
 
 	for (int i = 0; i < dsCursor_Count; ++i)
@@ -1851,10 +1851,10 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 		struct wl_display* wlDisplay = SDL_GetPointerProperty(
 			SDL_GetGlobalProperties(), SDL_PROP_GLOBAL_VIDEO_WAYLAND_WL_DISPLAY_POINTER, NULL);
 		// NOTE: Creation may legitimately fail if the runtime requirements aren't present.
-		application->colorManager = dsWaylandColorManager_create(allocator, wlDisplay);
+		application->waylandColorManager = dsWaylandColorManager_create(allocator, wlDisplay);
 	}
 	else
-		application->colorManager = NULL;
+		application->waylandColorManager = NULL;
 #endif
 
 	if (!DS_RESIZEABLE_ARRAY_ADD(allocator, baseApplication->displays,

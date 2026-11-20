@@ -29,7 +29,7 @@ typedef struct dsSDLWindow
 	const char* surfaceName;
 	SDL_Window* sdlWindow;
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-	dsWaylandColorManagerSurface* colorManagerSurface;
+	dsWaylandColorManagerSurface* waylandColorManagerSurface;
 #endif
 	uint32_t curSurfaceWidth;
 	uint32_t curSurfaceHeight;

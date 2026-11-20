@@ -28,7 +28,7 @@ typedef struct dsSDLApplication
 	dsApplication application;
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-	dsWaylandColormanager* colorManager;
+	dsWaylandColormanager* waylandColorManager;
 #endif
 
 	bool useMotionSensors;
