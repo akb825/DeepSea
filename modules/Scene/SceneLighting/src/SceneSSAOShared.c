@@ -68,7 +68,7 @@ bool dsSceneSSAO_canUseMaterial(const dsMaterial* material)
 		DS_LOG_ERROR_F(DS_SCENE_LIGHTING_LOG_TAG,
 			"SSAO material element '%s' must be a texture with material binding.",
 			randomRotationsName);
-		return randomRotationsName;
+		return false;
 	}
 
 	return true;

@@ -99,9 +99,9 @@ static void dsShadowInstanceTransformData_populateDataSIMD(void* userData, const
 		DS_PROFILE_FUNC_RETURN_VOID();
 	}
 
-	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(shadowData->shadows,
-		shadowData->surface);
-	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection))
+	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(
+		shadowData->shadows, shadowData->surface);
+	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection != NULL))
 	{
 		dummyTransformData(instanceCount, data, stride);
 		DS_PROFILE_FUNC_RETURN_VOID();
@@ -144,9 +144,9 @@ static void dsShadowInstanceTransformData_populateDataFMA(void* userData, const 
 		DS_PROFILE_FUNC_RETURN_VOID();
 	}
 
-	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(shadowData->shadows,
-		shadowData->surface);
-	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection))
+	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(
+		shadowData->shadows, shadowData->surface);
+	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection != NULL))
 	{
 		dummyTransformData(instanceCount, data, stride);
 		DS_PROFILE_FUNC_RETURN_VOID();
@@ -190,9 +190,9 @@ static void dsShadowInstanceTransformData_populateData(void* userData, const dsV
 		DS_PROFILE_FUNC_RETURN_VOID();
 	}
 
-	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(shadowData->shadows,
-		shadowData->surface);
-	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection))
+	const dsMatrix44f* projection = dsSceneLightShadows_getSurfaceProjection(
+		shadowData->shadows, shadowData->surface);
+	if (!DS_CHECK(DS_SCENE_LIGHTING_LOG_TAG, projection != NULL))
 	{
 		dummyTransformData(instanceCount, data, stride);
 		DS_PROFILE_FUNC_RETURN_VOID();
