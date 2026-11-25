@@ -40,4 +40,8 @@ else()
 		PUBLIC DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER=0)
 endif()
 
+if (WIN32)
+	ds_target_link_libraries(deepsea_application PRIVATE dxgi.lib)
+endif()
+
 ds_install_library(TARGET deepsea_application MODULE Application DEPENDS Render)

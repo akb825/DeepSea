@@ -20,6 +20,7 @@
 #include "SDLShared.h"
 
 #include <DeepSea/Application/Platform/WaylandColorManager.h>
+#include <DeepSea/Application/Platform/WindowsHDRDisplayManager.h>
 #include <DeepSea/Application/Application.h>
 
 #include <DeepSea/ApplicationSDL/Types.h>
@@ -383,16 +384,35 @@ bool dsSDLWindow_getHDRProperties(
 	float* outMaxSDRNits, float* outLinearOneNits, float* outMaxHDRNits, dsWindow* window)
 {
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)window->application;
+	DS_UNUSED(sdlApplication);
+
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
 	if (sdlWindow->waylandColorManagerSurface)
 	{
 		if (!dsWaylandColorManagerSurface_getLumiances(
-				outLinearOneNits, outMaxHDRNits, sdlWindow->waylandColorManagerSurface))
+			outMaxSDRNits, outMaxHDRNits, sdlWindow->waylandColorManagerSurface))
 		{
 			return false;
 		}
 
-		*outMaxSDRNits = *outLinearOneNits;
+		// Color manager sets the linear one luminance same as max SDR luminance
+		*outLinearOneNits = *outMaxSDRNits;
+		return true;
+	}
+#endif
+
+#if DS_WINDOWS
+	if (sdlApplication->windowsHDRDisplayManager && window->display)
+	{
+		if (!dsWindowsHDRDisplayManager_getDisplayLuminances(outMaxSDRNits, outMaxHDRNits,
+				sdlApplication->windowsHDRDisplayManager, window->display->osDisplay))
+		{
+			return false;
+		}
+
+		// With Microsoft interpretation of scRGB, linear value of (1, 1, 1) is always 80 nits.
+		*outLinearOneNits = 80.0f;
 		return true;
 	}
 #endif
@@ -470,6 +490,8 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 	DS_ASSERT(position);
 	dsSDLWindow* sdlWindow = (dsSDLWindow*)window;
 	dsApplication* application = window->application;
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)window->application;
+	DS_UNUSED(sdlApplication);
 	dsRenderer* renderer = application->renderer;
 
 	if (!dsRenderSurface_destroy(window->surface))
@@ -556,7 +578,6 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 		application, SDL_GetDisplayForWindow(internalWindow));
 
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
-	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	if (sdlApplication->waylandColorManager)
 	{
 		struct wl_surface* surface = (struct wl_surface*)SDL_GetPointerProperty(
@@ -598,6 +619,12 @@ bool dsSDLWindow_createComponents(dsWindow* window, const dsVector2i* position, 
 			}
 		}
 	}
+#endif
+
+#if DS_WINDOWS
+	// Ensure the latest HDR state is available.
+	if (sdlApplication->windowsHDRDisplayManager)
+		dsWindowsHDRDisplayManager_update(sdlApplication->windowsHDRDisplayManager);
 #endif
 
 	DS_VERIFY(dsSDLWindow_getHDRProperties(

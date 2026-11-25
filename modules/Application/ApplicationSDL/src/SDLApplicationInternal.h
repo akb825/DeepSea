@@ -22,6 +22,7 @@
 #include <SDL3/SDL.h>
 
 typedef struct dsWaylandColorManager dsWaylandColormanager;
+typedef struct dsWindowsHDRDisplayManager dsWindowsHDRDisplayManager;
 
 typedef struct dsSDLApplication
 {
@@ -30,10 +31,14 @@ typedef struct dsSDLApplication
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
 	dsWaylandColormanager* waylandColorManager;
 #endif
+#if DS_WINDOWS
+	dsWindowsHDRDisplayManager* windowsHDRDisplayManager;
+#endif
 
 	bool useMotionSensors;
 	bool quit;
 	bool hasFrameEvents;
+	bool updateHDRState;
 	int exitCode;
 	SDL_Cursor* cursors[dsCursor_Count];
 	dsCursor curCursor;

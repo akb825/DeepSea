@@ -72,7 +72,8 @@ typedef struct dsWaylandColorManagerSurface dsWaylandColorManagerSurface;
 /**
  * @brief Creates a Wayland color manager.
  * @remark errno will be set on failure.
- * @param allocator The allocator to create the color manager with.
+ * @param allocator The allocator to create the color manager with. This must support freeing
+ *     memeory.
  * @param display The Wayland display.
  * @return The color manager or NULL if an error occurred. An error likely indicates that the
  *     current target doesn't support the necessary protocols.

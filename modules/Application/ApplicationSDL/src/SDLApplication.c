@@ -24,6 +24,7 @@
 #include "SDLWindow.h"
 
 #include <DeepSea/Application/Platform/WaylandColorManager.h>
+#include <DeepSea/Application/Platform/WindowsHDRDisplayManager.h>
 #include <DeepSea/Application/Application.h>
 #include <DeepSea/Application/GameInput.h>
 #include <DeepSea/Application/Window.h>
@@ -685,10 +686,9 @@ static bool updateWindowState(
 	}
 
 	float maxSDRNits, linearOneNits, maxHDRNits;
-	if (!dsSDLWindow_getHDRProperties(
-			&maxSDRNits, &linearOneNits, &maxHDRNits, window) ||
-		maxSDRNits != window->maxSDRNits || linearOneNits != window->linearOneNits ||
-		maxHDRNits != window->maxHDRNits)
+	if (dsSDLWindow_getHDRProperties(&maxSDRNits, &linearOneNits, &maxHDRNits, window) &&
+		(maxSDRNits != window->maxSDRNits || linearOneNits != window->linearOneNits ||
+		maxHDRNits != window->maxHDRNits))
 	{
 		changeFlags |= dsWindowChangeFlags_HDR;
 		window->maxSDRNits = maxSDRNits;
@@ -702,6 +702,26 @@ static bool updateWindowState(
 	outEvent->type = dsAppEventType_WindowChanged;
 	outEvent->windowChange.window = window;
 	outEvent->windowChange.flags = changeFlags;
+	return true;
+}
+
+static bool updateWindowHDRState(dsEvent* outEvent, dsApplication* application, dsWindow* window)
+{
+	float maxSDRNits, linearOneNits, maxHDRNits;
+	if (!dsSDLWindow_getHDRProperties(&maxSDRNits, &linearOneNits, &maxHDRNits, window) ||
+		(maxSDRNits == window->maxSDRNits && linearOneNits == window->linearOneNits &&
+		maxHDRNits == window->maxHDRNits))
+	{
+		return false;
+	}
+
+	window->maxSDRNits = maxSDRNits;
+	window->linearOneNits = linearOneNits;
+	window->maxHDRNits = maxHDRNits;
+
+	outEvent->type = dsAppEventType_WindowChanged;
+	outEvent->windowChange.window = window;
+	outEvent->windowChange.flags = dsWindowChangeFlags_HDR;
 	return true;
 }
 
@@ -760,6 +780,7 @@ static void initializeFrame(dsApplication* application)
 static bool convertEvent(
 	dsEvent* outEvent, dsApplication* application, dsWindow* focusWindow, const SDL_Event* sdlEvent)
 {
+	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	switch (sdlEvent->type)
 	{
 		case SDL_EVENT_WILL_ENTER_BACKGROUND:
@@ -790,6 +811,9 @@ static bool convertEvent(
 		}
 		case SDL_EVENT_DISPLAY_ADDED:
 		{
+			// Guarantee HDR state is up to date.
+			sdlApplication->updateHDRState = true;
+
 			dsDisplayInfo* display = createDisplay(application, sdlEvent->display.displayID);
 			uint32_t index = application->displayCount;
 			if (!DS_CHECK(DS_APPLICATION_SDL_LOG_TAG, display != NULL &&
@@ -806,6 +830,9 @@ static bool convertEvent(
 			return true;
 		}
 		case SDL_EVENT_DISPLAY_REMOVED:
+			// Guarantee HDR state is up to date.
+			sdlApplication->updateHDRState = true;
+
 			outEvent->display = findDisplay(application, sdlEvent->display.displayID);
 			if (!outEvent->display)
 				return false;
@@ -880,6 +907,11 @@ static bool convertEvent(
 				dsRenderer_waitUntilIdle(application->renderer);
 			}
 #endif
+			// Guarantee HDR state is up to date by the time updates are finished for events that
+			// could have been triggered due to a change in display state.
+			sdlApplication->updateHDRState |= sdlEvent->type == SDL_EVENT_WINDOW_DISPLAY_CHANGED ||
+				sdlEvent->type == SDL_EVENT_WINDOW_HDR_STATE_CHANGED;
+
 			dsWindow* window = findWindow(application, sdlEvent->window.windowID);
 			if (!window)
 				return false;
@@ -901,6 +933,8 @@ static bool convertEvent(
 			outEvent->type = dsAppEventType_MouseLeft;
 			return true;
 		case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			// Guarantee HDR state is up to date whenever focus changes.
+			sdlApplication->updateHDRState = true;
 			outEvent->window = findWindow(application, sdlEvent->window.windowID);
 			if (!outEvent->window)
 				return false;
@@ -1222,11 +1256,21 @@ static void finalizeEvents(dsApplication* application)
 	dsSDLApplication* sdlApplication = (dsSDLApplication*)application;
 	DS_ASSERT(sdlApplication->hasFrameEvents);
 
-	bool luminanceValuesChanged = false;
+	bool luminanceValuesChanged = sdlApplication->updateHDRState;
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
 	if (sdlApplication->waylandColorManager)
 		luminanceValuesChanged = dsWaylandColorManager_update(sdlApplication->waylandColorManager);
 #endif
+
+#if DS_WINDOWS
+	if (luminanceValuesChanged && sdlApplication->windowsHDRDisplayManager)
+	{
+		luminanceValuesChanged = dsWindowsHDRDisplayManager_update(
+			sdlApplication->windowsHDRDisplayManager);
+	}
+#endif
+
+	sdlApplication->updateHDRState = false;
 
 	// Sanity check for any windows that might have a missing display or render surface size
 	// change didn't get caught by other events. Also check for format updates that may have
@@ -1268,8 +1312,8 @@ static void finalizeEvents(dsApplication* application)
 			sdlWindow->curSurfaceColorSpace != colorSpace ||
 			sdlWindow->curSurfaceDepthStencilFormat != depthFormat;
 
-		if (luminanceValuesChanged || !window->display || (surface &&
-			(sdlWindow->curSurfaceWidth != surface->width ||
+		dsEvent event;
+		if (!window->display || (surface && (sdlWindow->curSurfaceWidth != surface->width ||
 			sdlWindow->curSurfaceHeight != surface->height ||
 			sdlWindow->curSurfaceRotation != surface->rotation || formatChanged)))
 		{
@@ -1280,10 +1324,16 @@ static void finalizeEvents(dsApplication* application)
 				dsRenderSurface_update(surface, surface->width, surface->height);
 			}
 
-			dsEvent event;
-			event.time = dsTimer_currentTicks();
 			if (updateWindowState(&event, application, window, false))
+			{
+				event.time = dsTimer_currentTicks();
 				dsApplication_dispatchEvent(application, &event);
+			}
+		}
+		else if (luminanceValuesChanged && updateWindowHDRState(&event, application, window))
+		{
+			event.time = dsTimer_currentTicks();
+			dsApplication_dispatchEvent(application, &event);
 		}
 	}
 
@@ -1682,6 +1732,9 @@ void dsSDLApplication_destroy(dsApplication* application)
 #if DS_APPLICATION_HAS_WAYLAND_COLOR_MANAGER
 	dsWaylandColorManager_destroy(sdlApplication->waylandColorManager);
 #endif
+#if DS_WINDOWS
+	dsWindowsHDRDisplayManager_destroy(sdlApplication->windowsHDRDisplayManager);
+#endif
 
 	for (int i = 0; i < dsCursor_Count; ++i)
 	{
@@ -1835,6 +1888,7 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	application->useMotionSensors = (flags & dsSDLApplicationFlags_MotionSensors) != 0;
 	application->quit = false;
 	application->hasFrameEvents = false;
+	application->updateHDRState = false;
 	application->exitCode = 0;
 	memset(application->cursors, 0, sizeof(application->cursors));
 	application->inputTickRef = 0;
@@ -1855,6 +1909,10 @@ dsApplication* dsSDLApplication_create(dsAllocator* allocator, dsRenderer* rende
 	}
 	else
 		application->waylandColorManager = NULL;
+#endif
+
+#if DS_WINDOWS
+	application->windowsHDRDisplayManager = dsWindowsHDRDisplayManager_create(allocator);
 #endif
 
 	if (!DS_RESIZEABLE_ARRAY_ADD(allocator, baseApplication->displays,
